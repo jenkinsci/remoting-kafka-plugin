@@ -4,14 +4,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>org.jenkins-ci.plugins</groupId>
+        <groupId>org.jenkins-ci</groupId>
         <artifactId>remoting-kafka-plugin</artifactId>
         <version>1.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>remoting-kafka-client</artifactId>
+    <artifactId>remoting-kafka-agent</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>Remoting Kafka Plugin Client</name>
+    <name>Remoting Kafka Plugin Agent</name>
 </project>
