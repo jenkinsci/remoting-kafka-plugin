@@ -1,0 +1,34 @@
+version: '2'
+services:
+    remoting-kafka-agent:
+        build: agent/
+        environment:
+            JENKINS_MASTER: 'jenkins'
+        depends_on:
+            - jenkins
+
+    jenkins:
+        image: jenkins/jenkins:lts
+        ports:
+            - "8080:8080"
+            - "50000:50000"
+            - "36088:36088"
+
+    kafka:
+        image: wurstmeister/kafka:1.1.0
+        ports:
+            - "9092:9092"
+        links:
+            - zookeeper
+        environment:
+            KAFKA_ADVERTISED_HOST_NAME: 127.0.0.1
+            KAFKA_ADVERTISED_PORT: 9092
+            KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+
+    zookeeper:
+        image: wurstmeister/zookeeper:latest
+        ports:
+            - "2181:2181"
+            
