@@ -12,7 +12,6 @@ public class KafkaConsumerClient {
     private static final Logger LOGGER = Logger.getLogger(KafkaConsumerClient.class.getName());
     private static KafkaConsumerClient instance;
     private KafkaConsumer<String, String> consumer;
-    private Properties props;
 
     private KafkaConsumerClient() {
 
@@ -25,9 +24,9 @@ public class KafkaConsumerClient {
         return instance;
     }
 
-    public String subscribe(String connectionURL, List<String> topics, long timeout) {
+    public String subscribe(Properties props, List<String> topics, long timeout) {
         if (consumer == null) {
-            initConsumer(connectionURL);
+            consumer = new KafkaConsumer<>(props);
         }
         consumer.subscribe(topics);
         StringBuffer topicList = new StringBuffer();
@@ -47,25 +46,5 @@ public class KafkaConsumerClient {
         }
         consumer.commitSync();
         return payload;
-    }
-
-    private void initConsumer(String connectionURL) {
-        this.setProps(connectionURL);
-        Thread.currentThread().setContextClassLoader(null);
-        consumer = new KafkaConsumer<>(props);
-    }
-
-    public Properties getProps() {
-        return props;
-    }
-
-    private void setProps(String connectionURL) {
-        props = new Properties();
-        props.put("bootstrap.servers", connectionURL);
-        props.put("group.id", "agent");
-        props.put("enable.auto.commit", "false");
-        props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-        props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-        LOGGER.info("Finished setting up Kafka configuration with connectionURL: " + connectionURL);
     }
 }

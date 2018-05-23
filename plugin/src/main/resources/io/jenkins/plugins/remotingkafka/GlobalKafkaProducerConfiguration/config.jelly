@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
-    <f:section title="${%Remoting Kafka Configuration}">
-        <f:entry field="connectionURL" title="${%Connection URL}">
+    <f:section title="${%Remoting Kafka Producer Configuration}">
+        <f:entry field="bootstrapServers" title="${%Connection URL}">
             <f:textbox/>
         </f:entry>
     </f:section>

@@ -13,7 +13,6 @@ public class KafkaProducerClient {
     private static final Logger LOGGER = Logger.getLogger(KafkaProducerClient.class.getName());
     private static KafkaProducerClient instance;
     private Producer<String, String> producer;
-    private Properties props;
 
     private KafkaProducerClient() {
 
@@ -26,23 +25,10 @@ public class KafkaProducerClient {
         return instance;
     }
 
-    private void initProducer(String connectionURL) {
-        this.setProps(connectionURL);
-        Thread.currentThread().setContextClassLoader(null);
-        producer = new KafkaProducer<String, String>(props);
-    }
-
-    private void setProps(String connectionURL) {
-        props = new Properties();
-        props.put("bootstrap.servers", connectionURL);
-        props.put("acks", "all");
-        props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-        props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-    }
-
-    public void send(String connectionURL, String topic, String key, String value) {
+    public void send(Properties props, String topic, String key, String value) {
         if (producer == null) {
-            initProducer(connectionURL);
+            Thread.currentThread().setContextClassLoader(null);
+            producer = new KafkaProducer<>(props);
         }
         try {
             producer.send(new ProducerRecord<String, String>(topic, key, value)).get();
