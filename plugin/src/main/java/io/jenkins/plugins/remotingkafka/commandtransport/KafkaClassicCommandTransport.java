@@ -3,10 +3,12 @@ package io.jenkins.plugins.remotingkafka.commandtransport;
 import hudson.remoting.Capability;
 import hudson.remoting.Command;
 import hudson.remoting.SynchronousCommandTransport;
+import io.jenkins.plugins.remotingkafka.KafkaConsumerPool;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 
@@ -32,7 +34,7 @@ public class KafkaClassicCommandTransport extends SynchronousCommandTransport {
 
     public KafkaClassicCommandTransport(Capability remoteCapability, String producerTopic, String producerKey
             , List<String> consumerTopics, String consumerKey, long pollTimeout
-            , Producer<String, byte[]> producer, Consumer<String, byte[]> consumer) {
+            , Producer<String, byte[]> producer, KafkaConsumer<String, byte[]> consumer) {
         this.remoteCapability = remoteCapability;
         this.producerKey = producerKey;
         this.producerTopic = producerTopic;
@@ -58,13 +60,14 @@ public class KafkaClassicCommandTransport extends SynchronousCommandTransport {
     @Override
     public final void closeWrite() throws IOException {
         // Because Kafka producer is thread safe, we do not need to close the producer and may reuse.
-        producer.close();
+//        producer.close();
     }
 
     @Override
     public final void closeRead() throws IOException {
         consumer.commitSync();
         consumer.close();
+        KafkaConsumerPool.getInstance().releasebyteConsumer();
     }
 
     @Override

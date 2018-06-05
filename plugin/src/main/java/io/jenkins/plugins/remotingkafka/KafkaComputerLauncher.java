@@ -10,7 +10,6 @@ import hudson.slaves.SlaveComputer;
 import io.jenkins.plugins.remotingkafka.commandtransport.KafkaClassicCommandTransport;
 import jenkins.model.JenkinsLocationConfiguration;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -127,7 +126,7 @@ public class KafkaComputerLauncher extends ComputerLauncher {
         producerProps.put(KafkaConstants.KEY_SERIALIZER, "org.apache.kafka.common.serialization.StringSerializer");
         producerProps.put(KafkaConstants.VALUE_SERIALIZER, "org.apache.kafka.common.serialization.ByteArraySerializer");
         Thread.currentThread().setContextClassLoader(null);
-        Producer<String, byte[]> producer = new KafkaProducer<>(producerProps);
+        Producer<String, byte[]> producer = KafkaProducerClient.getInstance().getByteProducer(producerProps);
         Properties consumerProps = GlobalKafkaConsumerConfiguration.get().getProps();
         if (consumerProps.getProperty(KafkaConstants.BOOTSTRAP_SERVERS) == null) {
             throw new IllegalStateException("Please provide Kafka consumer connection URL in global setting");
@@ -135,7 +134,9 @@ public class KafkaComputerLauncher extends ComputerLauncher {
         consumerProps.put(KafkaConstants.KEY_DESERIALIZER, "org.apache.kafka.common.serialization.StringDeserializer");
         consumerProps.put(KafkaConstants.VALUE_DESERIALIZER, "org.apache.kafka.common.serialization.ByteArrayDeserializer");
         Thread.currentThread().setContextClassLoader(null);
-        KafkaConsumer<String, byte[]> consumer = new KafkaConsumer<>(consumerProps);
+        KafkaConsumerPool consumerPool = KafkaConsumerPool.getInstance();
+        consumerPool.init(4, consumerProps);
+        KafkaConsumer<String, byte[]> consumer = consumerPool.getbyteConsumer();
         return new KafkaClassicCommandTransport(cap, producerTopic, producerKey, consumerTopics, consumerKey, 0, producer, consumer);
     }
 
