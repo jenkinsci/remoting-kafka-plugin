@@ -36,9 +36,15 @@ public class KafkaConsumerPool {
     public void init(int poolSize, Properties byteConsumerProps) {
         if (byteConsumerPool.isEmpty()) {
             this.byteConsumerProps = byteConsumerProps;
-            for (int i = 0; i < poolSize; i++) {
-                KafkaConsumer<String, byte[]> consumer = new KafkaConsumer<>(byteConsumerProps);
-                byteConsumerPool.add(consumer);
+            ClassLoader cl = Thread.currentThread().getContextClassLoader();
+            try {
+                Thread.currentThread().setContextClassLoader(null);
+                for (int i = 0; i < poolSize; i++) {
+                    KafkaConsumer<String, byte[]> consumer = new KafkaConsumer<>(byteConsumerProps);
+                    byteConsumerPool.add(consumer);
+                }
+            } finally {
+                Thread.currentThread().setContextClassLoader(cl);
             }
         }
     }
@@ -58,8 +64,14 @@ public class KafkaConsumerPool {
 
     public void releaseByteConsumer() {
         synchronized (poolLock) {
-            KafkaConsumer<String, byte[]> consumer = new KafkaConsumer<>(byteConsumerProps);
-            byteConsumerPool.add(consumer);
+            ClassLoader cl = Thread.currentThread().getContextClassLoader();
+            try {
+                Thread.currentThread().setContextClassLoader(null);
+                KafkaConsumer<String, byte[]> consumer = new KafkaConsumer<>(byteConsumerProps);
+                byteConsumerPool.add(consumer);
+            } finally {
+                Thread.currentThread().setContextClassLoader(cl);
+            }
         }
     }
 }

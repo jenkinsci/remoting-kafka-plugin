@@ -81,6 +81,7 @@ public class KafkaClassicCommandTransport extends SynchronousCommandTransport {
                 }
             }
             if (cmd != null) {
+                consumer.commitSync();
                 LOGGER.info("Received a command: " + cmd.toString());
                 return cmd;
             }

@@ -24,7 +24,14 @@ public class KafkaProducerClient {
 
     public Producer<String, byte[]> getByteProducer(Properties producerProps) {
         if (byteProducer == null) {
-            byteProducer = new KafkaProducer<>(producerProps);
+            ClassLoader cl = Thread.currentThread().getContextClassLoader();
+            try {
+                Thread.currentThread().setContextClassLoader(null);
+                byteProducer = new KafkaProducer<>(producerProps);
+            } finally {
+                System.out.println(cl);
+                Thread.currentThread().setContextClassLoader(cl);
+            }
         }
         return byteProducer;
     }
