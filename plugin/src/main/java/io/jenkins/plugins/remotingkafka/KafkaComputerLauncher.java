@@ -126,7 +126,7 @@ public class KafkaComputerLauncher extends ComputerLauncher {
         Thread.currentThread().setContextClassLoader(null);
         KafkaConsumerPool consumerPool = KafkaConsumerPool.getInstance();
         consumerPool.init(4, consumerProps);
-        KafkaConsumer<String, byte[]> consumer = consumerPool.getbyteConsumer();
+        KafkaConsumer<String, byte[]> consumer = consumerPool.getByteConsumer();
         return new KafkaClassicCommandTransport(cap, producerTopic, producerKey, consumerTopics, consumerKey, 0, producer, consumer);
     }
 

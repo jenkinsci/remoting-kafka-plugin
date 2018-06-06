@@ -31,7 +31,7 @@
     <modules>
         <module>agent</module>
         <module>plugin</module>
-        <module>kafka-client</module>
+        <module>kafka-client-lib</module>
     </modules>
 
     <scm>

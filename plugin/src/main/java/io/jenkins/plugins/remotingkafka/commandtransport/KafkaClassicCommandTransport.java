@@ -66,7 +66,7 @@ public class KafkaClassicCommandTransport extends SynchronousCommandTransport {
     public final void closeRead() throws IOException {
         consumer.commitSync();
         consumer.close();
-        KafkaConsumerPool.getInstance().releasebyteConsumer();
+        KafkaConsumerPool.getInstance().releaseByteConsumer();
     }
 
     @Override

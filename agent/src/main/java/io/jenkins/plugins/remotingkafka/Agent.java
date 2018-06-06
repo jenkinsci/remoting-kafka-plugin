@@ -65,7 +65,7 @@ public class Agent {
         consumerProps.put(KafkaConstants.KEY_DESERIALIZER, "org.apache.kafka.common.serialization.StringDeserializer");
         consumerProps.put(KafkaConstants.VALUE_DESERIALIZER, "org.apache.kafka.common.serialization.ByteArrayDeserializer");
         KafkaConsumerPool.getInstance().init(4, consumerProps);
-        KafkaConsumer<String, byte[]> consumer = KafkaConsumerPool.getInstance().getbyteConsumer();
+        KafkaConsumer<String, byte[]> consumer = KafkaConsumerPool.getInstance().getByteConsumer();
         consumer.subscribe(Arrays.asList(consumerTopic));
         LOGGER.info("Subscribed to topic: " + consumerTopic);
         Command cmd = null;

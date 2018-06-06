@@ -43,7 +43,7 @@ public class KafkaConsumerPool {
         }
     }
 
-    public KafkaConsumer<String, byte[]> getbyteConsumer() {
+    public KafkaConsumer<String, byte[]> getByteConsumer() {
         synchronized (poolLock) {
             while (byteConsumerPool.isEmpty()) {
                 try {
@@ -56,7 +56,7 @@ public class KafkaConsumerPool {
         }
     }
 
-    public void releasebyteConsumer() {
+    public void releaseByteConsumer() {
         synchronized (poolLock) {
             KafkaConsumer<String, byte[]> consumer = new KafkaConsumer<>(byteConsumerProps);
             byteConsumerPool.add(consumer);
