@@ -57,15 +57,6 @@ public class Agent {
         String consumerTopic = url.getHost() + "-" + url.getPort() + "-" + options.name
                 + KafkaConstants.CONNECT_SUFFIX;
 
-//        // Producer properties test
-//        Properties producerProps = new Properties();
-//        producerProps.put(KafkaConstants.BOOTSTRAP_SERVERS, options.kafkaURL);
-//        producerProps.put(KafkaConstants.KEY_SERIALIZER, "org.apache.kafka.common.serialization.StringSerializer");
-//        producerProps.put(KafkaConstants.VALUE_SERIALIZER, "org.apache.kafka.common.serialization.StringSerializer");
-//        Producer<String, String> producer = new KafkaProducer<>(producerProps);
-//        producer.send(new ProducerRecord<>(consumerTopic, "launch", "test-local"));
-//        LOGGER.info("sent");
-
         // Consumer properties.
         Properties consumerProps = new Properties();
         consumerProps.put(KafkaConstants.BOOTSTRAP_SERVERS, options.kafkaURL);

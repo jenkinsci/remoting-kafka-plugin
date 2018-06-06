@@ -3,6 +3,7 @@ package io.jenkins.plugins.remotingkafka;
 import hudson.Extension;
 import hudson.model.Computer;
 import hudson.model.Descriptor;
+import hudson.model.Node;
 import hudson.model.TaskListener;
 import hudson.remoting.*;
 import hudson.slaves.ComputerLauncher;
@@ -47,7 +48,9 @@ public class KafkaComputerLauncher extends ComputerLauncher {
         callables.add(new Callable<Boolean>() {
             @Override
             public Boolean call() throws Exception {
-                ChannelBuilder cb = new ChannelBuilder(computer.getNode().getNodeName(), Computer.threadPoolForRemoting)
+                Node node = computer.getNode();
+                if (node == null) return false;
+                ChannelBuilder cb = new ChannelBuilder(node.getNodeName(), Computer.threadPoolForRemoting)
                         .withHeaderStream(listener.getLogger());
                 CommandTransport ct = makeTransport(computer);
                 computer.setChannel(cb, ct, new Channel.Listener() {
@@ -87,27 +90,14 @@ public class KafkaComputerLauncher extends ComputerLauncher {
                 launcherExecutorService = null;
             }
         }
-        // testing code.
-//        KafkaProducerClient producer = KafkaProducerClient.getInstance();
-//        KafkaConsumerClient consumer = KafkaConsumerClient.getInstance();
-//        JenkinsLocationConfiguration loc = JenkinsLocationConfiguration.get();
-//        String jenkinsURL = (loc != null && loc.getUrl() != null) ? loc.getUrl() : "http://localhost:8080";
-//        URL url = new URL(jenkinsURL);
-//        String masterAgentConnectionTopic = url.getHost() + "-" + url.getPort() + "-" + computer.getName()
-//                + KafkaConstants.CONNECT_SUFFIX;
-//        String agentMasterConnectionTopic = computer.getName() + "-" + url.getHost() + "-" + url.getPort()
-//                + KafkaConstants.CONNECT_SUFFIX;
-//        Properties producerProps = GlobalKafkaProducerConfiguration.get().getProps();
-//        Properties consumerProps = GlobalKafkaConsumerConfiguration.get().getProps();
-//        producer.send(producerProps, masterAgentConnectionTopic, null, agentMasterConnectionTopic);
-//        consumer.subscribe(consumerProps, Arrays.asList(agentMasterConnectionTopic), 0);
     }
 
     private CommandTransport makeTransport(SlaveComputer computer) {
         JenkinsLocationConfiguration loc = JenkinsLocationConfiguration.get();
-        String jenkinsURL = (loc != null && loc.getUrl() != null) ? loc.getUrl() : "http://localhost:8080";
+        String jenkinsURL = loc.getUrl();
         URL url;
         try {
+            if (jenkinsURL == null) throw new IllegalStateException("Malformed Jenkins URL exception");
             url = new URL(jenkinsURL);
         } catch (MalformedURLException e) {
             throw new IllegalStateException("Malformed Jenkins URL exception");

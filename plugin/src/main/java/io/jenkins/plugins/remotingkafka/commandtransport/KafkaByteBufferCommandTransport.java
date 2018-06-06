@@ -47,7 +47,6 @@ public class KafkaByteBufferCommandTransport extends AbstractByteBufferCommandTr
     @Override
     public void closeWrite() throws IOException {
         // Because Kafka producer is thread safe, we do not need to close the producer and may reuse.
-//        producer.close();
     }
 
     @Override

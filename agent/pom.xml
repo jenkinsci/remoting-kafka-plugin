@@ -59,7 +59,7 @@
         <dependency>
             <groupId>org.jenkins-ci.main</groupId>
             <artifactId>remoting</artifactId>
-            <version>3.21-20180604.024221-4</version>
+            <version>${remoting.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
