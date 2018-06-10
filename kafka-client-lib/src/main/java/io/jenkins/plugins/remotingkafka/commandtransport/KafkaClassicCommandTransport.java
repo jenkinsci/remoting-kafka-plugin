@@ -13,7 +13,9 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 
 import java.io.IOException;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.logging.Logger;
 
 /**
@@ -69,15 +71,28 @@ public class KafkaClassicCommandTransport extends SynchronousCommandTransport {
         KafkaConsumerPool.getInstance().releaseByteConsumer();
     }
 
+    private Queue<Command> commandQueue = new LinkedList<>();
+
     @Override
     public final Command read() throws IOException, ClassNotFoundException, InterruptedException {
-        Command cmd = null;
+        if (!commandQueue.isEmpty()) {
+            Command cmd = commandQueue.poll();
+            LOGGER.info("Received a command: " + cmd.toString());
+            return cmd;
+        }
+
         consumer.subscribe(consumerTopics);
-        while (true) {
+        while (true) { // Poll consumer until we get something
             ConsumerRecords<String, byte[]> records = consumer.poll(pollTimeout);
+            Command cmd = null;
             for (ConsumerRecord<String, byte[]> record : records) {
                 if (record.key().equals(consumerKey)) {
-                    cmd = (Command) SerializationUtils.deserialize(record.value());
+                    Command read = Command.readFrom(channel, record.value());
+                    if (cmd == null) { // first one goes to the immediate execution
+                        cmd = read;
+                    } else { // write the rest to the queue
+                        commandQueue.add(read);
+                    }
                 }
             }
             if (cmd != null) {

@@ -24,6 +24,7 @@
             <groupId>org.jenkins-ci.main</groupId>
             <artifactId>remoting</artifactId>
             <version>${remoting.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
