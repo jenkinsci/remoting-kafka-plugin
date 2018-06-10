@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
 
 /**
@@ -34,6 +35,9 @@ public class KafkaClassicCommandTransport extends SynchronousCommandTransport {
     private final String consumerKey;
     private final long pollTimeout;
 
+    private Queue<Command> commandQueue;
+
+
     public KafkaClassicCommandTransport(Capability remoteCapability, String producerTopic, String producerKey
             , List<String> consumerTopics, String consumerKey, long pollTimeout
             , Producer<String, byte[]> producer, KafkaConsumer<String, byte[]> consumer) {
@@ -45,6 +49,7 @@ public class KafkaClassicCommandTransport extends SynchronousCommandTransport {
         this.producer = producer;
         this.consumer = consumer;
         this.pollTimeout = pollTimeout;
+        this.commandQueue = new ConcurrentLinkedQueue<>();
     }
 
     @Override
@@ -71,7 +76,6 @@ public class KafkaClassicCommandTransport extends SynchronousCommandTransport {
         KafkaConsumerPool.getInstance().releaseByteConsumer();
     }
 
-    private Queue<Command> commandQueue = new LinkedList<>();
 
     @Override
     public final Command read() throws IOException, ClassNotFoundException, InterruptedException {

@@ -78,7 +78,6 @@ public class Agent {
 
         public void error(Throwable t) {
             LOGGER.log(Level.SEVERE, t.getMessage(), t);
-//            System.exit(-1);
         }
 
         public void onDisconnect() {
