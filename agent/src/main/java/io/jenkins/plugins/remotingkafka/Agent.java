@@ -1,20 +1,17 @@
 package io.jenkins.plugins.remotingkafka;
 
-import hudson.remoting.Command;
-import org.apache.commons.lang3.SerializationUtils;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
+import hudson.remoting.EngineListener;
+import org.jenkinsci.remoting.engine.WorkDirManager;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static java.util.logging.Level.INFO;
 
 public class Agent {
     private static final Logger LOGGER = Logger.getLogger(Agent.class.getName());
@@ -53,31 +50,40 @@ public class Agent {
             }
         }
 
-        URL url = new URL(options.master);
-        String consumerTopic = url.getHost() + "-" + url.getPort() + "-" + options.name
-                + KafkaConstants.CONNECT_SUFFIX;
+        URL masterURL = new URL(options.master);
+        Engine engine = new Engine(new CuiListener(), masterURL, options.name, options.kafkaURL);
+        engine.setInternalDir(WorkDirManager.DirType.INTERNAL_DIR.getDefaultLocation());
+        engine.setFailIfWorkDirIsMissing(WorkDirManager.DEFAULT_FAIL_IF_WORKDIR_IS_MISSING);
+        engine.startEngine();
+        try {
+            engine.join();
+            LOGGER.fine("Engine has died");
+        } finally {
+            engine.interrupt();
+        }
+    }
 
-        // Consumer properties.
-        Properties consumerProps = new Properties();
-        consumerProps.put(KafkaConstants.BOOTSTRAP_SERVERS, options.kafkaURL);
-        consumerProps.put(KafkaConstants.GROUP_ID, "testID");
-        consumerProps.put(KafkaConstants.ENABLE_AUTO_COMMIT, "false");
-        consumerProps.put(KafkaConstants.KEY_DESERIALIZER, "org.apache.kafka.common.serialization.StringDeserializer");
-        consumerProps.put(KafkaConstants.VALUE_DESERIALIZER, "org.apache.kafka.common.serialization.ByteArrayDeserializer");
-        KafkaConsumerPool.getInstance().init(4, consumerProps);
-        KafkaConsumer<String, byte[]> consumer = KafkaConsumerPool.getInstance().getByteConsumer();
-        consumer.subscribe(Arrays.asList(consumerTopic));
-        LOGGER.info("Subscribed to topic: " + consumerTopic);
-        Command cmd = null;
-        while (true) {
-            ConsumerRecords<String, byte[]> records = consumer.poll(0);
-            for (ConsumerRecord<String, byte[]> record : records) {
-                if (record.key().equals("launch")) {
-                    consumer.commitSync();
-                    cmd = (Command) SerializationUtils.deserialize(record.value());
-                    LOGGER.info("Received a command cmd=" + cmd);
-                }
-            }
+    private static final class CuiListener implements EngineListener {
+        private CuiListener() {
+            LOGGER.info("Jenkins agent is running in headless mode.");
+        }
+
+        public void status(String msg, Throwable t) {
+            LOGGER.log(INFO, msg, t);
+        }
+
+        public void status(String msg) {
+            status(msg, null);
+        }
+
+        public void error(Throwable t) {
+            LOGGER.log(Level.SEVERE, t.getMessage(), t);
+        }
+
+        public void onDisconnect() {
+        }
+
+        public void onReconnect() {
         }
     }
 }

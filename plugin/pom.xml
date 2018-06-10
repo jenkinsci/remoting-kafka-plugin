@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>3.4</version>
+        <version>3.14</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -14,37 +14,18 @@
     <packaging>hpi</packaging>
     <name>Remoting Kafka Plugin Module</name>
     <properties>
-        <jenkins-core.version>2.126-20180603.152250-5</jenkins-core.version>
-        <jenkins-war.version>2.126-20180603.152314-5</jenkins-war.version>
-        <remoting.version>3.21-20180604.024221-4</remoting.version>
+        <jenkins-core.version>2.127-20180610.103314-1</jenkins-core.version>
+        <jenkins-war.version>2.127-20180610.103343-1</jenkins-war.version>
+        <remoting.version>3.22-20180610.103008-1</remoting.version>
         <!--<jenkins.version>2.60.3</jenkins.version>-->
         <java.level>8</java.level>
+        <useBeta>true</useBeta>
     </properties>
     <dependencies>
-        <dependency>
-            <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka-clients</artifactId>
-            <version>1.1.0</version>
-        </dependency>
         <dependency>
             <groupId>org.jenkins-ci</groupId>
             <artifactId>kafka-client-lib</artifactId>
             <version>1.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jenkins-ci.main</groupId>
-            <artifactId>remoting</artifactId>
-            <version>${remoting.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.5</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jenkins-ci.plugins</groupId>
-            <artifactId>jackson2-api</artifactId>
-            <version>2.5.4</version>
         </dependency>
     </dependencies>
 </project>

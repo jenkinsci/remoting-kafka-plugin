@@ -13,7 +13,10 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 
 import java.io.IOException;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
 
 /**
@@ -32,6 +35,9 @@ public class KafkaClassicCommandTransport extends SynchronousCommandTransport {
     private final String consumerKey;
     private final long pollTimeout;
 
+    private Queue<Command> commandQueue;
+
+
     public KafkaClassicCommandTransport(Capability remoteCapability, String producerTopic, String producerKey
             , List<String> consumerTopics, String consumerKey, long pollTimeout
             , Producer<String, byte[]> producer, KafkaConsumer<String, byte[]> consumer) {
@@ -43,6 +49,7 @@ public class KafkaClassicCommandTransport extends SynchronousCommandTransport {
         this.producer = producer;
         this.consumer = consumer;
         this.pollTimeout = pollTimeout;
+        this.commandQueue = new ConcurrentLinkedQueue<>();
     }
 
     @Override
@@ -69,18 +76,31 @@ public class KafkaClassicCommandTransport extends SynchronousCommandTransport {
         KafkaConsumerPool.getInstance().releaseByteConsumer();
     }
 
+
     @Override
     public final Command read() throws IOException, ClassNotFoundException, InterruptedException {
-        Command cmd = null;
+        if (!commandQueue.isEmpty()) {
+            Command cmd = commandQueue.poll();
+            LOGGER.info("Received a command: " + cmd.toString());
+            return cmd;
+        }
+
         consumer.subscribe(consumerTopics);
-        while (true) {
+        while (true) { // Poll consumer until we get something
             ConsumerRecords<String, byte[]> records = consumer.poll(pollTimeout);
+            Command cmd = null;
             for (ConsumerRecord<String, byte[]> record : records) {
                 if (record.key().equals(consumerKey)) {
-                    cmd = (Command) SerializationUtils.deserialize(record.value());
+                    Command read = Command.readFrom(channel, record.value());
+                    if (cmd == null) { // first one goes to the immediate execution
+                        cmd = read;
+                    } else { // write the rest to the queue
+                        commandQueue.add(read);
+                    }
                 }
             }
             if (cmd != null) {
+                consumer.commitSync();
                 LOGGER.info("Received a command: " + cmd.toString());
                 return cmd;
             }

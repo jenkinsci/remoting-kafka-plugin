@@ -1,7 +1,6 @@
 package io.jenkins.plugins.remotingkafka;
 
 import hudson.Extension;
-import hudson.model.Computer;
 import hudson.model.Descriptor;
 import hudson.model.Node;
 import hudson.model.TaskListener;
@@ -50,7 +49,7 @@ public class KafkaComputerLauncher extends ComputerLauncher {
             public Boolean call() throws Exception {
                 Node node = computer.getNode();
                 if (node == null) return false;
-                ChannelBuilder cb = new ChannelBuilder(node.getNodeName(), Computer.threadPoolForRemoting)
+                ChannelBuilder cb = new ChannelBuilder(node.getNodeName(), computer.threadPoolForRemoting)
                         .withHeaderStream(listener.getLogger());
                 CommandTransport ct = makeTransport(computer);
                 computer.setChannel(cb, ct, new Channel.Listener() {
@@ -74,6 +73,7 @@ public class KafkaComputerLauncher extends ComputerLauncher {
             try {
                 res = results.get(0).get();
             } catch (ExecutionException e) {
+                System.out.println(e);
                 res = Boolean.FALSE;
             }
             if (!res) {
@@ -115,7 +115,6 @@ public class KafkaComputerLauncher extends ComputerLauncher {
         }
         producerProps.put(KafkaConstants.KEY_SERIALIZER, "org.apache.kafka.common.serialization.StringSerializer");
         producerProps.put(KafkaConstants.VALUE_SERIALIZER, "org.apache.kafka.common.serialization.ByteArraySerializer");
-        Thread.currentThread().setContextClassLoader(null);
         Producer<String, byte[]> producer = KafkaProducerClient.getInstance().getByteProducer(producerProps);
         Properties consumerProps = GlobalKafkaConsumerConfiguration.get().getProps();
         if (consumerProps.getProperty(KafkaConstants.BOOTSTRAP_SERVERS) == null) {
@@ -123,7 +122,6 @@ public class KafkaComputerLauncher extends ComputerLauncher {
         }
         consumerProps.put(KafkaConstants.KEY_DESERIALIZER, "org.apache.kafka.common.serialization.StringDeserializer");
         consumerProps.put(KafkaConstants.VALUE_DESERIALIZER, "org.apache.kafka.common.serialization.ByteArrayDeserializer");
-        Thread.currentThread().setContextClassLoader(null);
         KafkaConsumerPool consumerPool = KafkaConsumerPool.getInstance();
         consumerPool.init(4, consumerProps);
         KafkaConsumer<String, byte[]> consumer = consumerPool.getByteConsumer();
