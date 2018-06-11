@@ -109,14 +109,14 @@ public class KafkaComputerLauncher extends ComputerLauncher {
         List<String> consumerTopics = Arrays.asList(computer.getName() + "-" + url.getHost() + "-" + url.getPort()
                 + KafkaConstants.CONNECT_SUFFIX);
 
-        Properties producerProps = GlobalKafkaProducerConfiguration.get().getProps();
+        Properties producerProps = GlobalKafkaConfiguration.get().getProducerProps();
         if (producerProps.getProperty(KafkaConstants.BOOTSTRAP_SERVERS) == null) {
             throw new IllegalStateException("Please provide Kafka producer connection URL in global setting");
         }
         producerProps.put(KafkaConstants.KEY_SERIALIZER, "org.apache.kafka.common.serialization.StringSerializer");
         producerProps.put(KafkaConstants.VALUE_SERIALIZER, "org.apache.kafka.common.serialization.ByteArraySerializer");
         Producer<String, byte[]> producer = KafkaProducerClient.getInstance().getByteProducer(producerProps);
-        Properties consumerProps = GlobalKafkaConsumerConfiguration.get().getProps();
+        Properties consumerProps = GlobalKafkaConfiguration.get().getConsumerProps();
         if (consumerProps.getProperty(KafkaConstants.BOOTSTRAP_SERVERS) == null) {
             throw new IllegalStateException("Please provide Kafka consumer connection URL in global setting");
         }
