@@ -58,7 +58,6 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
 
     @Override
     public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
-        req.bindJSON(this, json);
         this.connectionURL = json.getString("connectionURL");
         this.consumerGroupID = json.getString("consumerGroupID");
         setupProducerProps();
