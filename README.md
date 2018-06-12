@@ -7,3 +7,9 @@ Current versions of Jenkins Remoting are based on the TCP protocol. If it fails,
 This project aims an update of Remoting and Jenkins in order to add support of a popular message queue/bus technology (Kafka) as a fault-tolerant communication layer in Jenkins.
 
 More information about this project can be found at: https://jenkins.io/projects/gsoc/2018/remoting-over-message-bus/
+
+## Requirement
+docker, docker-compose
+
+## Instructions
+export DOCKERHOST=$(ifconfig docker0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}')
