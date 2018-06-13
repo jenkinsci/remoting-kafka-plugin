@@ -35,8 +35,6 @@ docker, docker-compose installed
 
     - Connection URL: kafka:9092
 
-    - Consumer Group ID
-
     5.2. Create an agent named test2 with Kafka option.
 
     5.3. Execute jobs to see how it works in the remote agent over Kafka.

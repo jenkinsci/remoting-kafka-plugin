@@ -15,12 +15,16 @@ services:
         command: -name test -master http://localhost:8080 -kafkaURL kafka:9092
         links:
             - kafka
+        depends_on:
+            - kafka
 
     kafka:
         image: wurstmeister/kafka:1.1.0
         ports:
             - "9092:9092"
         links:
+            - zookeeper
+        depends_on:
             - zookeeper
         environment:
             KAFKA_ADVERTISED_HOST_NAME: ${DOCKERHOST}

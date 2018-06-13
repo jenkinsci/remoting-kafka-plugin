@@ -164,31 +164,32 @@ public class Engine extends Thread {
     }
 
     private CommandTransport makeTransport() {
+        ClassLoader cl = Thread.currentThread().getContextClassLoader();
         Capability cap = new Capability();
-        String producerKey = "launch", consumerKey = "launch";
+        String producerKey = agentName, consumerKey = agentName;
         String producerTopic = agentName + "-" + masterURL.getHost() + "-" + masterURL.getPort()
-                + KafkaConstants.CONNECT_SUFFIX;
+                + KafkaConfigs.CONNECT_SUFFIX;
         List<String> consumerTopics = Arrays.asList(masterURL.getHost() + "-" + masterURL.getPort() + "-" + agentName
-                + KafkaConstants.CONNECT_SUFFIX);
+                + KafkaConfigs.CONNECT_SUFFIX);
+
 
         // Setup Kafka producer.
         Properties producerProps = new Properties();
-        producerProps.put(KafkaConstants.BOOTSTRAP_SERVERS, kafkaURL);
-        producerProps.put(KafkaConstants.KEY_SERIALIZER, "org.apache.kafka.common.serialization.StringSerializer");
-        producerProps.put(KafkaConstants.VALUE_SERIALIZER, "org.apache.kafka.common.serialization.ByteArraySerializer");
-        Thread.currentThread().setContextClassLoader(null);
+        producerProps.put(KafkaConfigs.BOOTSTRAP_SERVERS, kafkaURL);
+        producerProps.put(KafkaConfigs.KEY_SERIALIZER, "org.apache.kafka.common.serialization.StringSerializer");
+        producerProps.put(KafkaConfigs.VALUE_SERIALIZER, "org.apache.kafka.common.serialization.ByteArraySerializer");
         Producer<String, byte[]> producer = KafkaProducerClient.getInstance().getByteProducer(producerProps);
 
         // Setup Kafka consumer.
         Properties consumerProps = new Properties();
-        consumerProps.put(KafkaConstants.BOOTSTRAP_SERVERS, kafkaURL);
-        consumerProps.put(KafkaConstants.GROUP_ID, "testID");
-        consumerProps.put(KafkaConstants.ENABLE_AUTO_COMMIT, "false");
-        consumerProps.put(KafkaConstants.KEY_DESERIALIZER, "org.apache.kafka.common.serialization.StringDeserializer");
-        consumerProps.put(KafkaConstants.VALUE_DESERIALIZER, "org.apache.kafka.common.serialization.ByteArrayDeserializer");
-        KafkaConsumerPool consumerPool = KafkaConsumerPool.getInstance();
-        consumerPool.init(4, consumerProps);
-        KafkaConsumer<String, byte[]> consumer = consumerPool.getByteConsumer();
+        consumerProps.put(KafkaConfigs.BOOTSTRAP_SERVERS, kafkaURL);
+        consumerProps.put(KafkaConfigs.GROUP_ID, agentName);
+        consumerProps.put(KafkaConfigs.ENABLE_AUTO_COMMIT, "false");
+        consumerProps.put(KafkaConfigs.KEY_DESERIALIZER, "org.apache.kafka.common.serialization.StringDeserializer");
+        consumerProps.put(KafkaConfigs.VALUE_DESERIALIZER, "org.apache.kafka.common.serialization.ByteArrayDeserializer");
+        Thread.currentThread().setContextClassLoader(null);
+        KafkaConsumer<String, byte[]> consumer = new KafkaConsumer<>(consumerProps);
+        Thread.currentThread().setContextClassLoader(cl);
 
         return new KafkaClassicCommandTransport(cap, producerTopic, producerKey, consumerTopics, consumerKey, 0, producer, consumer);
     }
