@@ -33,7 +33,7 @@ docker, docker-compose installed
 
     5.1. Setup Kafka configuration in Manage Jenkins/Configure System:
 
-    - Connection URL: $DOCKERHOST:9092 (replace $DOCKERHOST with IP address)
+    - Connection URL: kafka:9092
 
     - Consumer Group ID
 
