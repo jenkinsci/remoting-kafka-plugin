@@ -1,4 +1,5 @@
 # Remoting Kafka Plugin
+This project is currently under development.
 
 ## Overview
 
