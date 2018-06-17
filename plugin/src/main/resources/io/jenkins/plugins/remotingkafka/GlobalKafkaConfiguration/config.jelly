@@ -5,8 +5,5 @@
         <f:entry field="connectionURL" title="${%Connection URL}">
             <f:textbox/>
         </f:entry>
-        <f:entry field="consumerGroupID" title="${%Consumer Group ID}">
-            <f:textbox/>
-        </f:entry>
     </f:section>
 </j:jelly>

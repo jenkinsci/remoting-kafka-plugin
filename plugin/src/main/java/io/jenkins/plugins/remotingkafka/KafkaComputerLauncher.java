@@ -11,6 +11,10 @@ import io.jenkins.plugins.remotingkafka.commandtransport.KafkaClassicCommandTran
 import jenkins.model.JenkinsLocationConfiguration;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.common.serialization.ByteArrayDeserializer;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.CheckForNull;
@@ -94,6 +98,7 @@ public class KafkaComputerLauncher extends ComputerLauncher {
 
     private CommandTransport makeTransport(SlaveComputer computer) {
         JenkinsLocationConfiguration loc = JenkinsLocationConfiguration.get();
+        String nodeName = computer.getName();
         String jenkinsURL = loc.getUrl();
         URL url;
         try {
@@ -103,28 +108,28 @@ public class KafkaComputerLauncher extends ComputerLauncher {
             throw new IllegalStateException("Malformed Jenkins URL exception");
         }
         Capability cap = new Capability();
-        String producerKey = "launch", consumerKey = "launch";
-        String producerTopic = url.getHost() + "-" + url.getPort() + "-" + computer.getName()
-                + KafkaConstants.CONNECT_SUFFIX;
-        List<String> consumerTopics = Arrays.asList(computer.getName() + "-" + url.getHost() + "-" + url.getPort()
-                + KafkaConstants.CONNECT_SUFFIX);
+        String producerKey = nodeName, consumerKey = nodeName;
+        String producerTopic = url.getHost() + "-" + url.getPort() + "-" + nodeName
+                + KafkaConfigs.CONNECT_SUFFIX;
+        List<String> consumerTopics = Arrays.asList(nodeName + "-" + url.getHost() + "-" + url.getPort()
+                + KafkaConfigs.CONNECT_SUFFIX);
 
         Properties producerProps = GlobalKafkaConfiguration.get().getProducerProps();
-        if (producerProps.getProperty(KafkaConstants.BOOTSTRAP_SERVERS) == null) {
+        if (producerProps.getProperty(KafkaConfigs.BOOTSTRAP_SERVERS) == null) {
             throw new IllegalStateException("Please provide Kafka producer connection URL in global setting");
         }
-        producerProps.put(KafkaConstants.KEY_SERIALIZER, "org.apache.kafka.common.serialization.StringSerializer");
-        producerProps.put(KafkaConstants.VALUE_SERIALIZER, "org.apache.kafka.common.serialization.ByteArraySerializer");
+        producerProps.put(KafkaConfigs.KEY_SERIALIZER, StringSerializer.class);
+        producerProps.put(KafkaConfigs.VALUE_SERIALIZER, ByteArraySerializer.class);
         Producer<String, byte[]> producer = KafkaProducerClient.getInstance().getByteProducer(producerProps);
+
         Properties consumerProps = GlobalKafkaConfiguration.get().getConsumerProps();
-        if (consumerProps.getProperty(KafkaConstants.BOOTSTRAP_SERVERS) == null) {
+        if (consumerProps.getProperty(KafkaConfigs.BOOTSTRAP_SERVERS) == null) {
             throw new IllegalStateException("Please provide Kafka consumer connection URL in global setting");
         }
-        consumerProps.put(KafkaConstants.KEY_DESERIALIZER, "org.apache.kafka.common.serialization.StringDeserializer");
-        consumerProps.put(KafkaConstants.VALUE_DESERIALIZER, "org.apache.kafka.common.serialization.ByteArrayDeserializer");
-        KafkaConsumerPool consumerPool = KafkaConsumerPool.getInstance();
-        consumerPool.init(4, consumerProps);
-        KafkaConsumer<String, byte[]> consumer = consumerPool.getByteConsumer();
+        consumerProps.put(KafkaConfigs.GROUP_ID, "master-" + nodeName);
+        consumerProps.put(KafkaConfigs.KEY_DESERIALIZER, StringDeserializer.class);
+        consumerProps.put(KafkaConfigs.VALUE_DESERIALIZER, ByteArrayDeserializer.class);
+        KafkaConsumer<String, byte[]> consumer = new KafkaConsumer<>(consumerProps);
         return new KafkaClassicCommandTransport(cap, producerTopic, producerKey, consumerTopics, consumerKey, 0, producer, consumer);
     }
 

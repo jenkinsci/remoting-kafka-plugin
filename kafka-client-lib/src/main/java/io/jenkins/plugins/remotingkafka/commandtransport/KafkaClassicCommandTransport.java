@@ -3,7 +3,6 @@ package io.jenkins.plugins.remotingkafka.commandtransport;
 import hudson.remoting.Capability;
 import hudson.remoting.Command;
 import hudson.remoting.SynchronousCommandTransport;
-import io.jenkins.plugins.remotingkafka.KafkaConsumerPool;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -13,7 +12,6 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 
 import java.io.IOException;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -73,7 +71,6 @@ public class KafkaClassicCommandTransport extends SynchronousCommandTransport {
     public final void closeRead() throws IOException {
         consumer.commitSync();
         consumer.close();
-        KafkaConsumerPool.getInstance().releaseByteConsumer();
     }
 
 

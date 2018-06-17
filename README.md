@@ -1,4 +1,5 @@
 # Remoting Kafka Plugin
+This project is currently under development.
 
 ## Overview
 
@@ -34,8 +35,6 @@ docker, docker-compose installed
     5.1. Setup Kafka configuration in Manage Jenkins/Configure System:
 
     - Connection URL: kafka:9092
-
-    - Consumer Group ID
 
     5.2. Create an agent named test2 with Kafka option.
 
