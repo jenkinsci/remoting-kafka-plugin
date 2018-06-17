@@ -11,6 +11,10 @@ import io.jenkins.plugins.remotingkafka.commandtransport.KafkaClassicCommandTran
 import jenkins.model.JenkinsLocationConfiguration;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.common.serialization.ByteArrayDeserializer;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.CheckForNull;
@@ -93,7 +97,6 @@ public class KafkaComputerLauncher extends ComputerLauncher {
     }
 
     private CommandTransport makeTransport(SlaveComputer computer) {
-        ClassLoader cl = Thread.currentThread().getContextClassLoader();
         JenkinsLocationConfiguration loc = JenkinsLocationConfiguration.get();
         String nodeName = computer.getName();
         String jenkinsURL = loc.getUrl();
@@ -115,19 +118,18 @@ public class KafkaComputerLauncher extends ComputerLauncher {
         if (producerProps.getProperty(KafkaConfigs.BOOTSTRAP_SERVERS) == null) {
             throw new IllegalStateException("Please provide Kafka producer connection URL in global setting");
         }
-        producerProps.put(KafkaConfigs.KEY_SERIALIZER, "org.apache.kafka.common.serialization.StringSerializer");
-        producerProps.put(KafkaConfigs.VALUE_SERIALIZER, "org.apache.kafka.common.serialization.ByteArraySerializer");
+        producerProps.put(KafkaConfigs.KEY_SERIALIZER, StringSerializer.class);
+        producerProps.put(KafkaConfigs.VALUE_SERIALIZER, ByteArraySerializer.class);
         Producer<String, byte[]> producer = KafkaProducerClient.getInstance().getByteProducer(producerProps);
+
         Properties consumerProps = GlobalKafkaConfiguration.get().getConsumerProps();
         if (consumerProps.getProperty(KafkaConfigs.BOOTSTRAP_SERVERS) == null) {
             throw new IllegalStateException("Please provide Kafka consumer connection URL in global setting");
         }
         consumerProps.put(KafkaConfigs.GROUP_ID, "master-" + nodeName);
-        consumerProps.put(KafkaConfigs.KEY_DESERIALIZER, "org.apache.kafka.common.serialization.StringDeserializer");
-        consumerProps.put(KafkaConfigs.VALUE_DESERIALIZER, "org.apache.kafka.common.serialization.ByteArrayDeserializer");
-        Thread.currentThread().setContextClassLoader(null);
+        consumerProps.put(KafkaConfigs.KEY_DESERIALIZER, StringDeserializer.class);
+        consumerProps.put(KafkaConfigs.VALUE_DESERIALIZER, ByteArrayDeserializer.class);
         KafkaConsumer<String, byte[]> consumer = new KafkaConsumer<>(consumerProps);
-        Thread.currentThread().setContextClassLoader(cl);
         return new KafkaClassicCommandTransport(cap, producerTopic, producerKey, consumerTopics, consumerKey, 0, producer, consumer);
     }
 

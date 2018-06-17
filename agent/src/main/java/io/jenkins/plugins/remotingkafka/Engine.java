@@ -4,6 +4,10 @@ import hudson.remoting.*;
 import io.jenkins.plugins.remotingkafka.commandtransport.KafkaClassicCommandTransport;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.common.serialization.ByteArrayDeserializer;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.jenkinsci.remoting.engine.WorkDirManager;
 import org.jenkinsci.remoting.protocol.cert.BlindTrustX509ExtendedTrustManager;
 import org.jenkinsci.remoting.protocol.cert.DelegatingX509ExtendedTrustManager;
@@ -164,7 +168,6 @@ public class Engine extends Thread {
     }
 
     private CommandTransport makeTransport() {
-        ClassLoader cl = Thread.currentThread().getContextClassLoader();
         Capability cap = new Capability();
         String producerKey = agentName, consumerKey = agentName;
         String producerTopic = agentName + "-" + masterURL.getHost() + "-" + masterURL.getPort()
@@ -172,12 +175,11 @@ public class Engine extends Thread {
         List<String> consumerTopics = Arrays.asList(masterURL.getHost() + "-" + masterURL.getPort() + "-" + agentName
                 + KafkaConfigs.CONNECT_SUFFIX);
 
-
         // Setup Kafka producer.
         Properties producerProps = new Properties();
         producerProps.put(KafkaConfigs.BOOTSTRAP_SERVERS, kafkaURL);
-        producerProps.put(KafkaConfigs.KEY_SERIALIZER, "org.apache.kafka.common.serialization.StringSerializer");
-        producerProps.put(KafkaConfigs.VALUE_SERIALIZER, "org.apache.kafka.common.serialization.ByteArraySerializer");
+        producerProps.put(KafkaConfigs.KEY_SERIALIZER, StringSerializer.class);
+        producerProps.put(KafkaConfigs.VALUE_SERIALIZER, ByteArraySerializer.class);
         Producer<String, byte[]> producer = KafkaProducerClient.getInstance().getByteProducer(producerProps);
 
         // Setup Kafka consumer.
@@ -185,11 +187,9 @@ public class Engine extends Thread {
         consumerProps.put(KafkaConfigs.BOOTSTRAP_SERVERS, kafkaURL);
         consumerProps.put(KafkaConfigs.GROUP_ID, agentName);
         consumerProps.put(KafkaConfigs.ENABLE_AUTO_COMMIT, "false");
-        consumerProps.put(KafkaConfigs.KEY_DESERIALIZER, "org.apache.kafka.common.serialization.StringDeserializer");
-        consumerProps.put(KafkaConfigs.VALUE_DESERIALIZER, "org.apache.kafka.common.serialization.ByteArrayDeserializer");
-        Thread.currentThread().setContextClassLoader(null);
+        consumerProps.put(KafkaConfigs.KEY_DESERIALIZER, StringDeserializer.class);
+        consumerProps.put(KafkaConfigs.VALUE_DESERIALIZER, ByteArrayDeserializer.class);
         KafkaConsumer<String, byte[]> consumer = new KafkaConsumer<>(consumerProps);
-        Thread.currentThread().setContextClassLoader(cl);
 
         return new KafkaClassicCommandTransport(cap, producerTopic, producerKey, consumerTopics, consumerKey, 0, producer, consumer);
     }
