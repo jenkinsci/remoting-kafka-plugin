@@ -189,6 +189,7 @@ public class Engine extends Thread {
         consumerProps.put(KafkaConfigs.ENABLE_AUTO_COMMIT, "false");
         consumerProps.put(KafkaConfigs.KEY_DESERIALIZER, StringDeserializer.class);
         consumerProps.put(KafkaConfigs.VALUE_DESERIALIZER, ByteArrayDeserializer.class);
+        consumerProps.put(KafkaConfigs.AUTO_OFFSET_RESET, "earliest");
         KafkaConsumer<String, byte[]> consumer = new KafkaConsumer<>(consumerProps);
 
         return new KafkaClassicCommandTransport(cap, producerTopic, producerKey, consumerTopics, consumerKey, 0, producer, consumer);

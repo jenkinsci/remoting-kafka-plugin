@@ -16,4 +16,5 @@ public class KafkaConfigs {
     public static final String ENABLE_AUTO_COMMIT = "enable.auto.commit";
     public static final String KEY_DESERIALIZER = "key.deserializer";
     public static final String VALUE_DESERIALIZER = "value.deserializer";
+    public static final String AUTO_OFFSET_RESET = "auto.offset.reset";
 }
