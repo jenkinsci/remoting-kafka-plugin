@@ -36,7 +36,11 @@ docker, docker-compose installed
 
     - Connection URL: kafka:9092
 
-    5.2. Create an agent named test2 with Kafka option.
+    5.2a. Create an agent named test with Kafka option.
+
+    5.2b. Or you can create your own custom agent name with the following command (see help or check agent/run.sh to see an example):
+
+        docker-compose run remoting-kafka-agent --help
 
     5.3. Execute jobs to see how it works in the remote agent over Kafka.
 
