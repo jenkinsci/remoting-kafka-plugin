@@ -1,12 +1,13 @@
 package io.jenkins.plugins.remotingkafka;
 
 import hudson.Extension;
+import hudson.model.Computer;
 import hudson.model.Descriptor;
 import hudson.model.TaskListener;
 import hudson.remoting.*;
 import hudson.slaves.ComputerLauncher;
 import hudson.slaves.SlaveComputer;
-import io.jenkins.plugins.remotingkafka.builder.KafkaClassicCommandTransportBuilder;
+import io.jenkins.plugins.remotingkafka.builder.KafkaTransportBuilder;
 import io.jenkins.plugins.remotingkafka.commandtransport.KafkaClassicCommandTransport;
 import io.jenkins.plugins.remotingkafka.exception.RemotingKafkaConfigurationException;
 import io.jenkins.plugins.remotingkafka.exception.RemotingKafkaException;
@@ -14,6 +15,7 @@ import jenkins.model.JenkinsLocationConfiguration;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -51,6 +53,9 @@ public class KafkaComputerLauncher extends ComputerLauncher {
         callables.add(new Callable<Boolean>() {
             @Override
             public Boolean call() throws Exception {
+                String topic = KafkaConfigs.getConnectionTopic(computer.getName(), retrieveJenkinsURL());
+                KafkaUtils.createTopic(topic, GlobalKafkaConfiguration.get().getZookeeperURL(), 4, 1);
+                waitForSecretValidation(computer.getName());
                 ChannelBuilder cb = new ChannelBuilder(computer.getName(), computer.threadPoolForRemoting)
                         .withHeaderStream(listener.getLogger());
                 CommandTransport ct = makeTransport(computer);
@@ -97,8 +102,7 @@ public class KafkaComputerLauncher extends ComputerLauncher {
         URL jenkinsURL = retrieveJenkinsURL();
         String kafkaURL = getKafkaURL();
         String topic = KafkaConfigs.getConnectionTopic(nodeName, jenkinsURL);
-        KafkaUtils.createTopic(topic, GlobalKafkaConfiguration.get().getZookeeperURL(), 2, 1);
-        KafkaClassicCommandTransport transport = new KafkaClassicCommandTransportBuilder()
+        KafkaClassicCommandTransport transport = new KafkaTransportBuilder()
                 .withRemoteCapability(new Capability())
                 .withProducerKey(KafkaConfigs.getMasterAgentCommandKey(nodeName, jenkinsURL))
                 .withConsumerKey(KafkaConfigs.getAgentMasterCommandKey(nodeName, jenkinsURL))
@@ -112,6 +116,10 @@ public class KafkaComputerLauncher extends ComputerLauncher {
                 .withPollTimeout(0)
                 .build();
         return transport;
+    }
+
+    public String getLaunchSecret(@Nonnull Computer computer) {
+        return KafkaSecretManager.getConnectionSecret(computer.getName());
     }
 
     public String getKafkaURL() {
@@ -135,6 +143,24 @@ public class KafkaComputerLauncher extends ComputerLauncher {
             throw new RemotingKafkaConfigurationException(Messages.KafkaComputerLauncher_MalformedJenkinsURL());
         }
         return url;
+    }
+
+    private void waitForSecretValidation(@Nonnull String agentName) throws RemotingKafkaConfigurationException {
+        String kafkaURL = getKafkaURL();
+        URL jenkinsURL = retrieveJenkinsURL();
+        String topic = KafkaConfigs.getConnectionTopic(agentName, jenkinsURL);
+        KafkaTransportBuilder settings = new KafkaTransportBuilder()
+                .withProducer(KafkaUtils.createByteProducer(kafkaURL))
+                .withConsumer(KafkaUtils.createByteConsumer(kafkaURL,
+                        KafkaConfigs.getConsumerGroupID(agentName, jenkinsURL)))
+                .withProducerKey(KafkaConfigs.getMasterAgentSecretKey(agentName, jenkinsURL))
+                .withConsumerKey(KafkaConfigs.getAgentMasterSecretKey(agentName, jenkinsURL))
+                .withProducerTopic(topic)
+                .withConsumerTopic(topic)
+                .withProducerPartition(KafkaConfigs.MASTER_AGENT_SECRET_PARTITION)
+                .withConsumerPartition(KafkaConfigs.AGENT_MASTER_SECRET_PARTITION);
+        KafkaSecretManager secretManager = new KafkaSecretManager(agentName, settings);
+        secretManager.waitForValidAgent();
     }
 
     @Extension

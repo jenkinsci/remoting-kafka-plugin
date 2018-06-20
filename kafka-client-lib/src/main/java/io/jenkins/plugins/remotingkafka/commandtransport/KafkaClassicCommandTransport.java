@@ -3,7 +3,7 @@ package io.jenkins.plugins.remotingkafka.commandtransport;
 import hudson.remoting.Capability;
 import hudson.remoting.Command;
 import hudson.remoting.SynchronousCommandTransport;
-import io.jenkins.plugins.remotingkafka.builder.KafkaClassicCommandTransportBuilder;
+import io.jenkins.plugins.remotingkafka.builder.KafkaTransportBuilder;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -37,8 +37,7 @@ public class KafkaClassicCommandTransport extends SynchronousCommandTransport {
 
     private Queue<Command> commandQueue;
 
-
-    public KafkaClassicCommandTransport(KafkaClassicCommandTransportBuilder settings) {
+    public KafkaClassicCommandTransport(KafkaTransportBuilder settings) {
         this.remoteCapability = settings.getRemoteCapability();
         this.producerKey = settings.getProducerKey();
         this.producerTopic = settings.getProducerTopic();

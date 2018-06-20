@@ -11,7 +11,7 @@ import javax.annotation.CheckForNull;
 /**
  * Builder class to build KafkaClassicCommandTransport
  */
-public class KafkaClassicCommandTransportBuilder {
+public class KafkaTransportBuilder {
     @CheckForNull
     private Capability remoteCapability;
 
@@ -37,52 +37,52 @@ public class KafkaClassicCommandTransportBuilder {
     private int producerPartition;
     private int consumerPartition;
 
-    public KafkaClassicCommandTransportBuilder withRemoteCapability(Capability cap) {
+    public KafkaTransportBuilder withRemoteCapability(Capability cap) {
         this.remoteCapability = cap;
         return this;
     }
 
-    public KafkaClassicCommandTransportBuilder withProducer(Producer<String, byte[]> producer) {
+    public KafkaTransportBuilder withProducer(Producer<String, byte[]> producer) {
         this.producer = producer;
         return this;
     }
 
-    public KafkaClassicCommandTransportBuilder withConsumer(Consumer<String, byte[]> consumer) {
+    public KafkaTransportBuilder withConsumer(Consumer<String, byte[]> consumer) {
         this.consumer = consumer;
         return this;
     }
 
-    public KafkaClassicCommandTransportBuilder withProducerTopic(String producerTopic) {
+    public KafkaTransportBuilder withProducerTopic(String producerTopic) {
         this.producerTopic = producerTopic;
         return this;
     }
 
-    public KafkaClassicCommandTransportBuilder withProducerKey(String producerKey) {
+    public KafkaTransportBuilder withProducerKey(String producerKey) {
         this.producerKey = producerKey;
         return this;
     }
 
-    public KafkaClassicCommandTransportBuilder withConsumerTopic(String consumerTopic) {
+    public KafkaTransportBuilder withConsumerTopic(String consumerTopic) {
         this.consumerTopic = consumerTopic;
         return this;
     }
 
-    public KafkaClassicCommandTransportBuilder withConsumerKey(String consumerKey) {
+    public KafkaTransportBuilder withConsumerKey(String consumerKey) {
         this.consumerKey = consumerKey;
         return this;
     }
 
-    public KafkaClassicCommandTransportBuilder withPollTimeout(long pollTimeout) {
+    public KafkaTransportBuilder withPollTimeout(long pollTimeout) {
         this.pollTimeout = pollTimeout;
         return this;
     }
 
-    public KafkaClassicCommandTransportBuilder withProducerPartition(int producerPartition) {
+    public KafkaTransportBuilder withProducerPartition(int producerPartition) {
         this.producerPartition = producerPartition;
         return this;
     }
 
-    public KafkaClassicCommandTransportBuilder withConsumerPartition(int consumerPartition) {
+    public KafkaTransportBuilder withConsumerPartition(int consumerPartition) {
         this.consumerPartition = consumerPartition;
         return this;
     }

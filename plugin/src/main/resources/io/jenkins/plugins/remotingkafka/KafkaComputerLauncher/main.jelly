@@ -1,0 +1,20 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core"
+>
+    <j:choose>
+        <j:when test="${it.offline and !it.temporarilyOffline}">
+            <j:if test="${h.hasPermission(it, it.CONNECT)}">
+                <p>
+                    ${%Connect agent to Jenkins with Kafka:}
+                </p>
+                <pre>java${it.launcher.vmargs == null ? '' : ' ' + it.launcher.vmargs} -jar remoting-kafka-agent.jar -name ${it.name} -master ${h.inferHudsonURL(request)} -secret ${it.launcher.getLaunchSecret(it)} -kafkaURL ${it.launcher.kafkaURL}
+                </pre>
+            </j:if>
+        </j:when>
+        <j:otherwise>
+            <p>
+                ${%Connected via Kafka agent.}
+            </p>
+        </j:otherwise>
+    </j:choose>
+</j:jelly>

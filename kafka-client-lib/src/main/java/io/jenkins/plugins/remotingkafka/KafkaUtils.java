@@ -44,7 +44,6 @@ public class KafkaUtils {
         return consumer;
     }
 
-
     public static void createTopic(String topic, String zookeeperHost, int noOfPartitions, int noOfReplication) {
         ZkClient zkClient = null;
         ZkUtils zkUtils;

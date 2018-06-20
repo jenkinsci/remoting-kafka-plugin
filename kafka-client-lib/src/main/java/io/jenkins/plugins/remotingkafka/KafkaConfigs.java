@@ -18,10 +18,13 @@ public class KafkaConfigs {
     // Partition configs.
     public static final int MASTER_AGENT_CMD_PARTITION = 0;
     public static final int AGENT_MASTER_CMD_PARTITION = 1;
+    public static final int MASTER_AGENT_SECRET_PARTITION = 2;
+    public static final int AGENT_MASTER_SECRET_PARTITION = 3;
     private static final String DELIMITER = ".";
     private static final String TOPIC_SUFFIX = "-topic";
     private static final String CONSUMER_GROUP_SUFFIX = "-id";
     private static final String COMMAND_SUFFIX = "-command";
+    private static final String SECRET_SUFFIX = "-secret";
 
     // Kafka topic configs.
     public static String getConnectionTopic(String agentName, URL masterURL) {
@@ -39,6 +42,14 @@ public class KafkaConfigs {
     }
 
     public static String getAgentMasterCommandKey(String agentName, URL masterURL) {
+        return agentName + DELIMITER + masterURL.getHost() + DELIMITER + masterURL.getPort() + COMMAND_SUFFIX;
+    }
+
+    public static String getMasterAgentSecretKey(String agentName, URL masterURL) {
+        return masterURL.getHost() + DELIMITER + masterURL.getPort() + DELIMITER + agentName + SECRET_SUFFIX;
+    }
+
+    public static String getAgentMasterSecretKey(String agentName, URL masterURL) {
         return agentName + DELIMITER + masterURL.getHost() + DELIMITER + masterURL.getPort() + COMMAND_SUFFIX;
     }
 }
