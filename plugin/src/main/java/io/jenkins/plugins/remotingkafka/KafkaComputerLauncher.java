@@ -2,26 +2,22 @@ package io.jenkins.plugins.remotingkafka;
 
 import hudson.Extension;
 import hudson.model.Descriptor;
-import hudson.model.Node;
 import hudson.model.TaskListener;
 import hudson.remoting.*;
 import hudson.slaves.ComputerLauncher;
 import hudson.slaves.SlaveComputer;
+import io.jenkins.plugins.remotingkafka.builder.KafkaClassicCommandTransportBuilder;
 import io.jenkins.plugins.remotingkafka.commandtransport.KafkaClassicCommandTransport;
 import jenkins.model.JenkinsLocationConfiguration;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.common.serialization.ByteArrayDeserializer;
-import org.apache.kafka.common.serialization.ByteArraySerializer;
-import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.common.serialization.StringSerializer;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.CheckForNull;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.*;
 import java.util.concurrent.Future;
@@ -33,9 +29,13 @@ public class KafkaComputerLauncher extends ComputerLauncher {
     @CheckForNull
     private transient volatile ExecutorService launcherExecutorService;
 
+    private final URL jenkinsURL;
+    private final String kafkaURL;
+
     @DataBoundConstructor
     public KafkaComputerLauncher() {
-
+        this.jenkinsURL = setupJenkinsURL();
+        this.kafkaURL = GlobalKafkaConfiguration.get().getConnectionURL();
     }
 
     @Override
@@ -51,9 +51,7 @@ public class KafkaComputerLauncher extends ComputerLauncher {
         callables.add(new Callable<Boolean>() {
             @Override
             public Boolean call() throws Exception {
-                Node node = computer.getNode();
-                if (node == null) return false;
-                ChannelBuilder cb = new ChannelBuilder(node.getNodeName(), computer.threadPoolForRemoting)
+                ChannelBuilder cb = new ChannelBuilder(computer.getName(), computer.threadPoolForRemoting)
                         .withHeaderStream(listener.getLogger());
                 CommandTransport ct = makeTransport(computer);
                 computer.setChannel(cb, ct, new Channel.Listener() {
@@ -97,8 +95,38 @@ public class KafkaComputerLauncher extends ComputerLauncher {
     }
 
     private CommandTransport makeTransport(SlaveComputer computer) {
-        JenkinsLocationConfiguration loc = JenkinsLocationConfiguration.get();
         String nodeName = computer.getName();
+        String topic = KafkaConfigs.getConnectionTopic(nodeName, jenkinsURL);
+        KafkaUtils.createTopic(topic, "");
+        KafkaClassicCommandTransport transport = new KafkaClassicCommandTransportBuilder()
+                .withRemoteCapability(new Capability())
+                .withProducerKey(KafkaConfigs.getMasterAgentCommandKey(nodeName, jenkinsURL))
+                .withConsumerKey(KafkaConfigs.getAgentMasterCommandKey(nodeName, jenkinsURL))
+                .withProducerTopic(topic)
+                .withConsumerTopic(topic)
+                .withProducerPartition(KafkaConfigs.MASTER_AGENT_CMD_PARTITION)
+                .withConsumerPartition(KafkaConfigs.AGENT_MASTER_CMD_PARTITION)
+                .withProducer(KafkaUtils.createByteProducer(kafkaURL))
+                .withConsumer(KafkaUtils.createByteConsumer(kafkaURL,
+                        KafkaConfigs.getConsumerGroupID(nodeName, jenkinsURL)))
+                .withPollTimeout(0)
+                .build();
+        return transport;
+    }
+
+    @Extension
+    public static class DescriptorImpl extends Descriptor<ComputerLauncher> {
+        public String getDisplayName() {
+            return "Launch agents with Kafka";
+        }
+    }
+
+    public String getKafkaURL() {
+        return kafkaURL;
+    }
+
+    private URL setupJenkinsURL() {
+        JenkinsLocationConfiguration loc = JenkinsLocationConfiguration.get();
         String jenkinsURL = loc.getUrl();
         URL url;
         try {
@@ -107,37 +135,6 @@ public class KafkaComputerLauncher extends ComputerLauncher {
         } catch (MalformedURLException e) {
             throw new IllegalStateException("Malformed Jenkins URL exception");
         }
-        Capability cap = new Capability();
-        String producerKey = nodeName, consumerKey = nodeName;
-        String producerTopic = url.getHost() + "-" + url.getPort() + "-" + nodeName
-                + KafkaConfigs.CONNECT_SUFFIX;
-        List<String> consumerTopics = Arrays.asList(nodeName + "-" + url.getHost() + "-" + url.getPort()
-                + KafkaConfigs.CONNECT_SUFFIX);
-
-        Properties producerProps = GlobalKafkaConfiguration.get().getProducerProps();
-        if (producerProps.getProperty(KafkaConfigs.BOOTSTRAP_SERVERS) == null) {
-            throw new IllegalStateException("Please provide Kafka producer connection URL in global setting");
-        }
-        producerProps.put(KafkaConfigs.KEY_SERIALIZER, StringSerializer.class);
-        producerProps.put(KafkaConfigs.VALUE_SERIALIZER, ByteArraySerializer.class);
-        Producer<String, byte[]> producer = KafkaProducerClient.getInstance().getByteProducer(producerProps);
-
-        Properties consumerProps = GlobalKafkaConfiguration.get().getConsumerProps();
-        if (consumerProps.getProperty(KafkaConfigs.BOOTSTRAP_SERVERS) == null) {
-            throw new IllegalStateException("Please provide Kafka consumer connection URL in global setting");
-        }
-        consumerProps.put(KafkaConfigs.GROUP_ID, "master-" + nodeName);
-        consumerProps.put(KafkaConfigs.KEY_DESERIALIZER, StringDeserializer.class);
-        consumerProps.put(KafkaConfigs.VALUE_DESERIALIZER, ByteArrayDeserializer.class);
-        consumerProps.put(KafkaConfigs.AUTO_OFFSET_RESET, "earliest");
-        KafkaConsumer<String, byte[]> consumer = new KafkaConsumer<>(consumerProps);
-        return new KafkaClassicCommandTransport(cap, producerTopic, producerKey, consumerTopics, consumerKey, 0, producer, consumer);
-    }
-
-    @Extension
-    public static class DescriptorImpl extends Descriptor<ComputerLauncher> {
-        public String getDisplayName() {
-            return "Launch agents with Kafka";
-        }
+        return url;
     }
 }

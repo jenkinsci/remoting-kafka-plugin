@@ -1,9 +1,11 @@
 package io.jenkins.plugins.remotingkafka;
 
 import hudson.remoting.*;
+import io.jenkins.plugins.remotingkafka.builder.*;
 import io.jenkins.plugins.remotingkafka.commandtransport.KafkaClassicCommandTransport;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -37,6 +39,7 @@ public class Engine extends Thread {
     private final String agentName;
     private final String kafkaURL;
     private final EngineListenerSplitter events = new EngineListenerSplitter();
+
     /**
      * Thread pool that sets {@link #CURRENT}.
      */
@@ -121,7 +124,8 @@ public class Engine extends Thread {
             jarCacheDirectory = workDirManager.getLocation(WorkDirManager.DirType.JAR_CACHE_DIR);
             workDirManager.setupLogging(path, agentLog);
         } else if (jarCache == null) {
-            LOGGER.log(Level.WARNING, "No Working Directory. Using the legacy JAR Cache location: {0}", JarCache.DEFAULT_NOWS_JAR_CACHE_LOCATION);
+            LOGGER.log(Level.WARNING, "No Working Directory. Using the legacy JAR Cache location: {0}",
+                    JarCache.DEFAULT_NOWS_JAR_CACHE_LOCATION);
             jarCacheDirectory = JarCache.DEFAULT_NOWS_JAR_CACHE_LOCATION;
         }
 
@@ -168,35 +172,19 @@ public class Engine extends Thread {
     }
 
     private CommandTransport makeTransport() {
-        Capability cap = new Capability();
-        String producerKey = agentName, consumerKey = agentName;
-        String producerTopic = agentName + "-" + masterURL.getHost() + "-" + masterURL.getPort()
-                + KafkaConfigs.CONNECT_SUFFIX;
-        List<String> consumerTopics = Arrays.asList(masterURL.getHost() + "-" + masterURL.getPort() + "-" + agentName
-                + KafkaConfigs.CONNECT_SUFFIX);
-
-        // Setup Kafka producer.
-        Properties producerProps = new Properties();
-        producerProps.put(KafkaConfigs.BOOTSTRAP_SERVERS, kafkaURL);
-        producerProps.put(KafkaConfigs.KEY_SERIALIZER, StringSerializer.class);
-        producerProps.put(KafkaConfigs.VALUE_SERIALIZER, ByteArraySerializer.class);
-        Producer<String, byte[]> producer = KafkaProducerClient.getInstance().getByteProducer(producerProps);
-
-        // Setup Kafka consumer.
-        Properties consumerProps = new Properties();
-        consumerProps.put(KafkaConfigs.BOOTSTRAP_SERVERS, kafkaURL);
-        consumerProps.put(KafkaConfigs.GROUP_ID, agentName);
-        consumerProps.put(KafkaConfigs.ENABLE_AUTO_COMMIT, "false");
-        consumerProps.put(KafkaConfigs.KEY_DESERIALIZER, StringDeserializer.class);
-        consumerProps.put(KafkaConfigs.VALUE_DESERIALIZER, ByteArrayDeserializer.class);
-        consumerProps.put(KafkaConfigs.AUTO_OFFSET_RESET, "earliest");
-        KafkaConsumer<String, byte[]> consumer = new KafkaConsumer<>(consumerProps);
-
-        return new KafkaClassicCommandTransport(cap, producerTopic, producerKey, consumerTopics, consumerKey, 0, producer, consumer);
-    }
-
-    public void setJarCache(@Nonnull JarCache jarCache) {
-        this.jarCache = jarCache;
+        KafkaClassicCommandTransport transport = new KafkaClassicCommandTransportBuilder()
+                .withRemoteCapability(new Capability())
+                .withProducerKey(KafkaConfigs.getAgentMasterCommandKey(agentName, masterURL))
+                .withConsumerKey(KafkaConfigs.getMasterAgentCommandKey(agentName, masterURL))
+                .withProducerTopic(KafkaConfigs.getConnectionTopic(agentName, masterURL))
+                .withConsumerTopic(KafkaConfigs.getConnectionTopic(agentName, masterURL))
+                .withProducerPartition(KafkaConfigs.AGENT_MASTER_CMD_PARTITION)
+                .withConsumerPartition(KafkaConfigs.MASTER_AGENT_CMD_PARTITION)
+                .withProducer(KafkaUtils.createByteProducer(kafkaURL))
+                .withConsumer(KafkaUtils.createByteConsumer(kafkaURL, KafkaConfigs.getConsumerGroupID(agentName, masterURL)))
+                .withPollTimeout(0)
+                .build();
+        return transport;
     }
 
     public void setInternalDir(@Nonnull String internalDir) {
