@@ -5,9 +5,10 @@ import io.jenkins.plugins.remotingkafka.builder.AutoOffsetReset;
 import io.jenkins.plugins.remotingkafka.builder.ConsumerPropertiesBuilder;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 import java.util.Properties;
+
+import static org.junit.Assert.assertEquals;
 
 public class ConsumerPropertiesBuilderTest {
     @Test

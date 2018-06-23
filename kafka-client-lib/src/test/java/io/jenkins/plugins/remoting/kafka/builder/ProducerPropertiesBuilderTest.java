@@ -6,9 +6,10 @@ import io.jenkins.plugins.remotingkafka.builder.ProducerAcks;
 import io.jenkins.plugins.remotingkafka.builder.ProducerPropertiesBuilder;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 import java.util.Properties;
+
+import static org.junit.Assert.assertEquals;
 
 public class ProducerPropertiesBuilderTest {
     @Test

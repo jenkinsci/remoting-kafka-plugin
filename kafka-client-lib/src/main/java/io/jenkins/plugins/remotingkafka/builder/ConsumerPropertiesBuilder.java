@@ -3,7 +3,6 @@ package io.jenkins.plugins.remotingkafka.builder;
 import io.jenkins.plugins.remotingkafka.KafkaConfigs;
 
 import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import java.util.Properties;
 import java.util.logging.Logger;
 

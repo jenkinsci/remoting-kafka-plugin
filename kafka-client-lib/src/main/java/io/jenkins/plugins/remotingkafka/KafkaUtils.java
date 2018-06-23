@@ -44,19 +44,16 @@ public class KafkaUtils {
     }
 
 
-    public static void createTopic(String topic, String zookeeperHost) {
+    public static void createTopic(String topic, String zookeeperHost, int noOfPartitions, int noOfReplication) {
         ZkClient zkClient = null;
         ZkUtils zkUtils;
         try {
-            zookeeperHost = "172.17.0.1:2181";
             int sessionTimeOutInMs = 15 * 1000; // 15 secs
             int connectionTimeOutInMs = 10 * 1000; // 10 secs
 
             zkClient = new ZkClient(zookeeperHost, sessionTimeOutInMs, connectionTimeOutInMs, ZKStringSerializer$.MODULE$);
             zkUtils = new ZkUtils(zkClient, new ZkConnection(zookeeperHost), false);
 
-            int noOfPartitions = 2;
-            int noOfReplication = 1;
             Properties topicConfiguration = new Properties();
             AdminUtils.createTopic(zkUtils, topic, noOfPartitions, noOfReplication, topicConfiguration, null);
         } catch (Exception ex) {

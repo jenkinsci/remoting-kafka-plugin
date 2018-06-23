@@ -23,8 +23,8 @@ public enum ProducerAcks {
         }
     },
     /**
-     *  This will mean the leader will write the record to its local log but will respond
-     *  without awaiting full acknowledgement from all followers.
+     * This will mean the leader will write the record to its local log but will respond
+     * without awaiting full acknowledgement from all followers.
      */
     ONE {
         @Override

@@ -25,12 +25,10 @@ import java.util.logging.Logger;
 
 public class KafkaComputerLauncher extends ComputerLauncher {
     private static final Logger LOGGER = Logger.getLogger(KafkaComputerLauncher.class.getName());
-
-    @CheckForNull
-    private transient volatile ExecutorService launcherExecutorService;
-
     private final URL jenkinsURL;
     private final String kafkaURL;
+    @CheckForNull
+    private transient volatile ExecutorService launcherExecutorService;
 
     @DataBoundConstructor
     public KafkaComputerLauncher() {
@@ -97,7 +95,7 @@ public class KafkaComputerLauncher extends ComputerLauncher {
     private CommandTransport makeTransport(SlaveComputer computer) {
         String nodeName = computer.getName();
         String topic = KafkaConfigs.getConnectionTopic(nodeName, jenkinsURL);
-        KafkaUtils.createTopic(topic, "");
+        KafkaUtils.createTopic(topic, GlobalKafkaConfiguration.get().getZookeeperURL(), 2, 1);
         KafkaClassicCommandTransport transport = new KafkaClassicCommandTransportBuilder()
                 .withRemoteCapability(new Capability())
                 .withProducerKey(KafkaConfigs.getMasterAgentCommandKey(nodeName, jenkinsURL))
@@ -112,13 +110,6 @@ public class KafkaComputerLauncher extends ComputerLauncher {
                 .withPollTimeout(0)
                 .build();
         return transport;
-    }
-
-    @Extension
-    public static class DescriptorImpl extends Descriptor<ComputerLauncher> {
-        public String getDisplayName() {
-            return "Launch agents with Kafka";
-        }
     }
 
     public String getKafkaURL() {
@@ -136,5 +127,12 @@ public class KafkaComputerLauncher extends ComputerLauncher {
             throw new IllegalStateException("Malformed Jenkins URL exception");
         }
         return url;
+    }
+
+    @Extension
+    public static class DescriptorImpl extends Descriptor<ComputerLauncher> {
+        public String getDisplayName() {
+            return "Launch agents with Kafka";
+        }
     }
 }

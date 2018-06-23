@@ -2,8 +2,10 @@ package io.jenkins.plugins.remoting.kafka.builder;
 
 import hudson.remoting.Capability;
 import io.jenkins.plugins.remotingkafka.builder.KafkaClassicCommandTransportBuilder;
-import static org.junit.Assert.*;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 public class KafkaClassicCommandTransportBuilderTest {
     @Test
