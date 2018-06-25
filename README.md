@@ -12,7 +12,7 @@ More information about this project can be found at: https://jenkins.io/projects
 ## Requirement
 docker, docker-compose installed
 
-## Plugin demo instructions
+## Plugin demo instructions (in demo branch)
 
 1. Set docker host environment variable
 

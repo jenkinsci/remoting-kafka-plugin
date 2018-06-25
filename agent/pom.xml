@@ -15,6 +15,7 @@
     <packaging>jar</packaging>
     <name>Remoting Kafka Plugin Agent</name>
     <build>
+        <finalName>remoting-kafka-agent</finalName>
         <plugins>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
@@ -27,6 +28,7 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <appendAssemblyId>false</appendAssemblyId>
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>

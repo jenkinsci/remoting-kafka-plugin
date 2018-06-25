@@ -5,5 +5,8 @@
         <f:entry field="connectionURL" title="${%Connection URL}">
             <f:textbox/>
         </f:entry>
+        <f:entry field="zookeeperURL" title="${%Zookeeper URL}">
+            <f:textbox/>
+        </f:entry>
     </f:section>
 </j:jelly>

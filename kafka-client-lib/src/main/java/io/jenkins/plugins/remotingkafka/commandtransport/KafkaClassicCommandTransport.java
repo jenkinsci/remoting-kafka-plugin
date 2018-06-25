@@ -3,16 +3,17 @@ package io.jenkins.plugins.remotingkafka.commandtransport;
 import hudson.remoting.Capability;
 import hudson.remoting.Command;
 import hudson.remoting.SynchronousCommandTransport;
+import io.jenkins.plugins.remotingkafka.builder.KafkaClassicCommandTransportBuilder;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.TopicPartition;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Arrays;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
@@ -21,32 +22,33 @@ import java.util.logging.Logger;
  * Referenced from ClassicCommandTransport.
  */
 public class KafkaClassicCommandTransport extends SynchronousCommandTransport {
-
     private static final Logger LOGGER = Logger.getLogger(KafkaClassicCommandTransport.class.getName());
     private final Capability remoteCapability;
-    // We use a single instance producer/consumer for each command transport for now.
+
     private final Producer<String, byte[]> producer;
     private final Consumer<String, byte[]> consumer;
     private final String producerTopic;
     private final String producerKey;
-    private final List<String> consumerTopics;
+    private final String consumerTopic;
     private final String consumerKey;
     private final long pollTimeout;
+    private final int producerPartition;
+    private final int consumerPartition;
 
     private Queue<Command> commandQueue;
 
 
-    public KafkaClassicCommandTransport(Capability remoteCapability, String producerTopic, String producerKey
-            , List<String> consumerTopics, String consumerKey, long pollTimeout
-            , Producer<String, byte[]> producer, KafkaConsumer<String, byte[]> consumer) {
-        this.remoteCapability = remoteCapability;
-        this.producerKey = producerKey;
-        this.producerTopic = producerTopic;
-        this.consumerKey = consumerKey;
-        this.consumerTopics = consumerTopics;
-        this.producer = producer;
-        this.consumer = consumer;
-        this.pollTimeout = pollTimeout;
+    public KafkaClassicCommandTransport(KafkaClassicCommandTransportBuilder settings) {
+        this.remoteCapability = settings.getRemoteCapability();
+        this.producerKey = settings.getProducerKey();
+        this.producerTopic = settings.getProducerTopic();
+        this.consumerKey = settings.getConsumerKey();
+        this.consumerTopic = settings.getConsumerTopic();
+        this.producer = settings.getProducer();
+        this.consumer = settings.getConsumer();
+        this.pollTimeout = settings.getPollTimeout();
+        this.producerPartition = settings.getProducerPartition();
+        this.consumerPartition = settings.getConsumerPartition();
         this.commandQueue = new ConcurrentLinkedQueue<>();
     }
 
@@ -58,7 +60,7 @@ public class KafkaClassicCommandTransport extends SynchronousCommandTransport {
     @Override
     public final void write(Command cmd, boolean last) throws IOException {
         byte[] bytes = SerializationUtils.serialize(cmd);
-        producer.send(new ProducerRecord<>(producerTopic, producerKey, bytes));
+        producer.send(new ProducerRecord<>(producerTopic, producerPartition, producerKey, bytes));
         LOGGER.info("Sent a command=" + cmd.toString() + ", in topic=" + producerTopic + ", with key=" + producerKey);
     }
 
@@ -73,7 +75,6 @@ public class KafkaClassicCommandTransport extends SynchronousCommandTransport {
         consumer.close();
     }
 
-
     @Override
     public final Command read() throws IOException, ClassNotFoundException, InterruptedException {
         if (!commandQueue.isEmpty()) {
@@ -81,8 +82,8 @@ public class KafkaClassicCommandTransport extends SynchronousCommandTransport {
             LOGGER.info("Received a command: " + cmd.toString());
             return cmd;
         }
-
-        consumer.subscribe(consumerTopics);
+        TopicPartition partition = new TopicPartition(consumerTopic, consumerPartition);
+        consumer.assign(Arrays.asList(partition));
         while (true) { // Poll consumer until we get something
             ConsumerRecords<String, byte[]> records = consumer.poll(pollTimeout);
             Command cmd = null;

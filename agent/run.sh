@@ -8,5 +8,6 @@ if [[ "$DEBUG" ]] ; then
     '-Xrunjdwp:server=y,transport=dt_socket,address=5005,suspend=y' \
   )
 fi
-
-java ${extra_java_opts[@]} -jar target/remoting-kafka-agent-1.0-SNAPSHOT-jar-with-dependencies.jar -name test2 -master http://localhost:8080 -kafkaURL 127.0.0.1:9092
+export DOCKERHOST=$(ifconfig docker0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}')
+echo $DOCKERHOST
+java ${extra_java_opts[@]} -jar target/remoting-kafka-agent-1.0-SNAPSHOT-jar-with-dependencies.jar -name test2 -master http://localhost:8080 -kafkaURL $DOCKERHOST:9092
