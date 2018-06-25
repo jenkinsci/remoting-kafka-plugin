@@ -1,6 +1,7 @@
 package io.jenkins.plugins.remotingkafka.builder;
 
 import io.jenkins.plugins.remotingkafka.KafkaConfigs;
+import io.jenkins.plugins.remotingkafka.exception.RemotingKafkaConfigurationException;
 
 import javax.annotation.CheckForNull;
 import java.util.Properties;
@@ -80,10 +81,10 @@ public class ConsumerPropertiesBuilder {
         return this;
     }
 
-    public Properties build() {
+    public Properties build() throws RemotingKafkaConfigurationException {
         Properties props = new Properties();
         if (bootsrapServers == null) {
-            throw new IllegalStateException("Please provide Kafka consumer bootstrap servers");
+            throw new RemotingKafkaConfigurationException("Please provide Kafka consumer bootstrap servers");
         }
         props.put(KafkaConfigs.BOOTSTRAP_SERVERS, bootsrapServers);
         props.put(KafkaConfigs.ENABLE_AUTO_COMMIT, enableAutoCommit);
@@ -94,11 +95,11 @@ public class ConsumerPropertiesBuilder {
             props.put(KafkaConfigs.AUTO_OFFSET_RESET, autoOffsetReset.toString());
         }
         if (keyDeserializer == null) {
-            throw new IllegalStateException("Please provide key deserializer class");
+            throw new RemotingKafkaConfigurationException("Please provide key deserializer class");
         }
         props.put(KafkaConfigs.KEY_DESERIALIZER, keyDeserializer);
         if (valueDeserializer == null) {
-            throw new IllegalStateException("Please provide value deserializer class");
+            throw new RemotingKafkaConfigurationException("Please provide value deserializer class");
         }
         props.put(KafkaConfigs.VALUE_DESERIALIZER, valueDeserializer);
         return props;

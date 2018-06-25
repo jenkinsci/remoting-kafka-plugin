@@ -1,6 +1,7 @@
 package io.jenkins.plugins.remotingkafka.builder;
 
 import io.jenkins.plugins.remotingkafka.KafkaConfigs;
+import io.jenkins.plugins.remotingkafka.exception.RemotingKafkaConfigurationException;
 
 import javax.annotation.CheckForNull;
 import java.util.Properties;
@@ -56,21 +57,21 @@ public class ProducerPropertiesBuilder {
         return this;
     }
 
-    public Properties build() {
+    public Properties build() throws RemotingKafkaConfigurationException {
         Properties props = new Properties();
         if (bootsrapServers == null) {
-            throw new IllegalStateException("Please provide Kafka producer bootstrap servers");
+            throw new RemotingKafkaConfigurationException("Please provide Kafka producer bootstrap servers");
         }
         props.put(KafkaConfigs.BOOTSTRAP_SERVERS, bootsrapServers);
         if (acks != null) {
             props.put(KafkaConfigs.ACKS, acks.toString());
         }
         if (keySerializer == null) {
-            throw new IllegalStateException("Please provide key serializer class");
+            throw new RemotingKafkaConfigurationException("Please provide key serializer class");
         }
         props.put(KafkaConfigs.KEY_SERIALIZER, keySerializer);
         if (valueSerializer == null) {
-            throw new IllegalStateException("Please provide value serializer class");
+            throw new RemotingKafkaConfigurationException("Please provide value serializer class");
         }
         props.put(KafkaConfigs.VALUE_SERIALIZER, valueSerializer);
         return props;

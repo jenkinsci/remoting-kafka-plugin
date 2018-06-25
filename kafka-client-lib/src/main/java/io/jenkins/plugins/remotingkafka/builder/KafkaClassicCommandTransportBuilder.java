@@ -2,6 +2,7 @@ package io.jenkins.plugins.remotingkafka.builder;
 
 import hudson.remoting.Capability;
 import io.jenkins.plugins.remotingkafka.commandtransport.KafkaClassicCommandTransport;
+import io.jenkins.plugins.remotingkafka.exception.RemotingKafkaTransportException;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.producer.Producer;
 
@@ -86,27 +87,27 @@ public class KafkaClassicCommandTransportBuilder {
         return this;
     }
 
-    public KafkaClassicCommandTransport build() {
+    public KafkaClassicCommandTransport build() throws RemotingKafkaTransportException {
         if (remoteCapability == null) {
-            throw new IllegalStateException("Please provide remote capability");
+            throw new RemotingKafkaTransportException("Please provide remote capability");
         }
         if (producer == null) {
-            throw new IllegalStateException("Please provide a producer instance");
+            throw new RemotingKafkaTransportException("Please provide a producer instance");
         }
         if (consumer == null) {
-            throw new IllegalStateException("Please provide a consumer instance");
+            throw new RemotingKafkaTransportException("Please provide a consumer instance");
         }
         if (producerTopic == null) {
-            throw new IllegalStateException("Please provide a producer topic");
+            throw new RemotingKafkaTransportException("Please provide a producer topic");
         }
         if (producerKey == null) {
-            throw new IllegalStateException("Please provide a producer key");
+            throw new RemotingKafkaTransportException("Please provide a producer key");
         }
         if (consumerTopic == null) {
-            throw new IllegalStateException("Please provide a consumer topic");
+            throw new RemotingKafkaTransportException("Please provide a consumer topic");
         }
         if (consumerKey == null) {
-            throw new IllegalStateException("Please provide a consumer key");
+            throw new RemotingKafkaTransportException("Please provide a consumer key");
         }
         return new KafkaClassicCommandTransport(this);
     }

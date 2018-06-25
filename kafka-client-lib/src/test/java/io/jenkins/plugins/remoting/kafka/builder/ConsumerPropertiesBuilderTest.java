@@ -3,6 +3,7 @@ package io.jenkins.plugins.remoting.kafka.builder;
 import io.jenkins.plugins.remotingkafka.KafkaConfigs;
 import io.jenkins.plugins.remotingkafka.builder.AutoOffsetReset;
 import io.jenkins.plugins.remotingkafka.builder.ConsumerPropertiesBuilder;
+import io.jenkins.plugins.remotingkafka.exception.RemotingKafkaConfigurationException;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.Test;
 
@@ -12,7 +13,7 @@ import static org.junit.Assert.assertEquals;
 
 public class ConsumerPropertiesBuilderTest {
     @Test
-    public void testBuildAllConfigs() {
+    public void testBuildAllConfigs() throws RemotingKafkaConfigurationException {
         Properties props = new ConsumerPropertiesBuilder()
                 .withBootstrapServers("localhost:9092")
                 .withEnableAutoCommit(false)
@@ -30,7 +31,7 @@ public class ConsumerPropertiesBuilderTest {
     }
 
     @Test
-    public void testBuildNoEnableAutoCommit() {
+    public void testBuildNoEnableAutoCommit() throws RemotingKafkaConfigurationException {
         Properties props = new ConsumerPropertiesBuilder()
                 .withBootstrapServers("localhost:9092")
                 .withAutoOffsetReset(AutoOffsetReset.EARLIEST)
@@ -47,7 +48,7 @@ public class ConsumerPropertiesBuilderTest {
     }
 
     @Test
-    public void testBuildNoAutoOffsetReset() {
+    public void testBuildNoAutoOffsetReset() throws RemotingKafkaConfigurationException {
         Properties props = new ConsumerPropertiesBuilder()
                 .withBootstrapServers("localhost:9092")
                 .withEnableAutoCommit(false)
@@ -74,6 +75,7 @@ public class ConsumerPropertiesBuilderTest {
                     .withValueDeserializer(StringDeserializer.class)
                     .build();
         } catch (Exception e) {
+            assertEquals(RemotingKafkaConfigurationException.class, e.getClass());
             assertEquals("Please provide Kafka consumer bootstrap servers", e.getMessage());
         }
     }
@@ -89,6 +91,7 @@ public class ConsumerPropertiesBuilderTest {
                     .withValueDeserializer(StringDeserializer.class)
                     .build();
         } catch (Exception e) {
+            assertEquals(RemotingKafkaConfigurationException.class, e.getClass());
             assertEquals("Please provide key deserializer class", e.getMessage());
         }
     }
@@ -104,6 +107,7 @@ public class ConsumerPropertiesBuilderTest {
                     .withKeyDeserializer(StringDeserializer.class)
                     .build();
         } catch (Exception e) {
+            assertEquals(RemotingKafkaConfigurationException.class, e.getClass());
             assertEquals("Please provide value deserializer class", e.getMessage());
         }
     }

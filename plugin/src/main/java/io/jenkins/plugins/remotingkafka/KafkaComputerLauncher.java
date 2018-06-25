@@ -8,6 +8,7 @@ import hudson.slaves.ComputerLauncher;
 import hudson.slaves.SlaveComputer;
 import io.jenkins.plugins.remotingkafka.builder.KafkaClassicCommandTransportBuilder;
 import io.jenkins.plugins.remotingkafka.commandtransport.KafkaClassicCommandTransport;
+import io.jenkins.plugins.remotingkafka.exception.RemotingKafkaException;
 import jenkins.model.JenkinsLocationConfiguration;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -25,15 +26,13 @@ import java.util.logging.Logger;
 
 public class KafkaComputerLauncher extends ComputerLauncher {
     private static final Logger LOGGER = Logger.getLogger(KafkaComputerLauncher.class.getName());
-    private final URL jenkinsURL;
-    private final String kafkaURL;
+
     @CheckForNull
     private transient volatile ExecutorService launcherExecutorService;
 
     @DataBoundConstructor
     public KafkaComputerLauncher() {
-        this.jenkinsURL = setupJenkinsURL();
-        this.kafkaURL = GlobalKafkaConfiguration.get().getConnectionURL();
+
     }
 
     @Override
@@ -92,8 +91,10 @@ public class KafkaComputerLauncher extends ComputerLauncher {
         }
     }
 
-    private CommandTransport makeTransport(SlaveComputer computer) {
+    private CommandTransport makeTransport(SlaveComputer computer) throws RemotingKafkaException {
         String nodeName = computer.getName();
+        URL jenkinsURL = retrieveJenkinsURL();
+        String kafkaURL = getKafkaURL();
         String topic = KafkaConfigs.getConnectionTopic(nodeName, jenkinsURL);
         KafkaUtils.createTopic(topic, GlobalKafkaConfiguration.get().getZookeeperURL(), 2, 1);
         KafkaClassicCommandTransport transport = new KafkaClassicCommandTransportBuilder()
@@ -113,11 +114,16 @@ public class KafkaComputerLauncher extends ComputerLauncher {
     }
 
     public String getKafkaURL() {
-        return kafkaURL;
+        return GlobalKafkaConfiguration.get().getConnectionURL();
     }
 
-    private URL setupJenkinsURL() {
-        JenkinsLocationConfiguration loc = JenkinsLocationConfiguration.get();
+    private URL retrieveJenkinsURL() {
+        JenkinsLocationConfiguration loc = null;
+        try {
+            loc = JenkinsLocationConfiguration.get();
+        } catch (Exception e) {
+            throw new IllegalStateException("Unable to retrieve jenkins URL");
+        }
         String jenkinsURL = loc.getUrl();
         URL url;
         try {

@@ -3,6 +3,7 @@ package io.jenkins.plugins.remotingkafka;
 import hudson.remoting.*;
 import io.jenkins.plugins.remotingkafka.builder.KafkaClassicCommandTransportBuilder;
 import io.jenkins.plugins.remotingkafka.commandtransport.KafkaClassicCommandTransport;
+import io.jenkins.plugins.remotingkafka.exception.RemotingKafkaException;
 import org.jenkinsci.remoting.engine.WorkDirManager;
 import org.jenkinsci.remoting.protocol.cert.BlindTrustX509ExtendedTrustManager;
 import org.jenkinsci.remoting.protocol.cert.DelegatingX509ExtendedTrustManager;
@@ -158,10 +159,12 @@ public class Engine extends Thread {
             events.error(e);
         } catch (IOException e) {
             events.error(e);
+        } catch (RemotingKafkaException e) {
+            events.error(e);
         }
     }
 
-    private CommandTransport makeTransport() {
+    private CommandTransport makeTransport() throws RemotingKafkaException {
         KafkaClassicCommandTransport transport = new KafkaClassicCommandTransportBuilder()
                 .withRemoteCapability(new Capability())
                 .withProducerKey(KafkaConfigs.getAgentMasterCommandKey(agentName, masterURL))

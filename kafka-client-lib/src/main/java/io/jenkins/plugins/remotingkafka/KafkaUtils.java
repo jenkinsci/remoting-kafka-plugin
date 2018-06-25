@@ -4,6 +4,7 @@ import io.jenkins.plugins.remotingkafka.builder.AutoOffsetReset;
 import io.jenkins.plugins.remotingkafka.builder.ConsumerPropertiesBuilder;
 import io.jenkins.plugins.remotingkafka.builder.ProducerAcks;
 import io.jenkins.plugins.remotingkafka.builder.ProducerPropertiesBuilder;
+import io.jenkins.plugins.remotingkafka.exception.RemotingKafkaConfigurationException;
 import kafka.admin.AdminUtils;
 import kafka.utils.ZKStringSerializer$;
 import kafka.utils.ZkUtils;
@@ -19,7 +20,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import java.util.Properties;
 
 public class KafkaUtils {
-    public static Producer<String, byte[]> createByteProducer(String kafkaURL) {
+    public static Producer<String, byte[]> createByteProducer(String kafkaURL) throws RemotingKafkaConfigurationException {
         Properties producerProps = new ProducerPropertiesBuilder()
                 .withBoostrapServers(kafkaURL)
                 .withAcks(ProducerAcks.ALL)
@@ -30,7 +31,7 @@ public class KafkaUtils {
         return producer;
     }
 
-    public static KafkaConsumer<String, byte[]> createByteConsumer(String kafkaURL, String consumerGroupID) {
+    public static KafkaConsumer<String, byte[]> createByteConsumer(String kafkaURL, String consumerGroupID) throws RemotingKafkaConfigurationException {
         Properties consumerProps = new ConsumerPropertiesBuilder()
                 .withBootstrapServers(kafkaURL)
                 .withGroupID(consumerGroupID)

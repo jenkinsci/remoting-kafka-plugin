@@ -4,6 +4,7 @@ package io.jenkins.plugins.remoting.kafka.builder;
 import io.jenkins.plugins.remotingkafka.KafkaConfigs;
 import io.jenkins.plugins.remotingkafka.builder.ProducerAcks;
 import io.jenkins.plugins.remotingkafka.builder.ProducerPropertiesBuilder;
+import io.jenkins.plugins.remotingkafka.exception.RemotingKafkaConfigurationException;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.Test;
 
@@ -13,7 +14,7 @@ import static org.junit.Assert.assertEquals;
 
 public class ProducerPropertiesBuilderTest {
     @Test
-    public void testBuildAllConfigs() {
+    public void testBuildAllConfigs() throws RemotingKafkaConfigurationException {
         Properties props = new ProducerPropertiesBuilder()
                 .withBoostrapServers("localhost:9092")
                 .withAcks(ProducerAcks.ALL)
@@ -27,7 +28,7 @@ public class ProducerPropertiesBuilderTest {
     }
 
     @Test
-    public void testBuildNoAcks() {
+    public void testBuildNoAcks() throws RemotingKafkaConfigurationException {
         Properties props = new ProducerPropertiesBuilder()
                 .withBoostrapServers("localhost:9092")
                 .withKeySerializer(StringSerializer.class)
@@ -48,6 +49,7 @@ public class ProducerPropertiesBuilderTest {
                     .withValueSerialier(StringSerializer.class)
                     .build();
         } catch (Exception e) {
+            assertEquals(RemotingKafkaConfigurationException.class, e.getClass());
             assertEquals("Please provide Kafka producer bootstrap servers", e.getMessage());
         }
     }
@@ -61,6 +63,7 @@ public class ProducerPropertiesBuilderTest {
                     .withValueSerialier(StringSerializer.class)
                     .build();
         } catch (Exception e) {
+            assertEquals(RemotingKafkaConfigurationException.class, e.getClass());
             assertEquals("Please provide key serializer class", e.getMessage());
         }
     }
@@ -74,6 +77,7 @@ public class ProducerPropertiesBuilderTest {
                     .withKeySerializer(StringSerializer.class)
                     .build();
         } catch (Exception e) {
+            assertEquals(RemotingKafkaConfigurationException.class, e.getClass());
             assertEquals("Please provide value serializer class", e.getMessage());
         }
     }
