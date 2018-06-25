@@ -8,6 +8,7 @@ import hudson.slaves.ComputerLauncher;
 import hudson.slaves.SlaveComputer;
 import io.jenkins.plugins.remotingkafka.builder.KafkaClassicCommandTransportBuilder;
 import io.jenkins.plugins.remotingkafka.commandtransport.KafkaClassicCommandTransport;
+import io.jenkins.plugins.remotingkafka.exception.RemotingKafkaConfigurationException;
 import io.jenkins.plugins.remotingkafka.exception.RemotingKafkaException;
 import jenkins.model.JenkinsLocationConfiguration;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -117,21 +118,21 @@ public class KafkaComputerLauncher extends ComputerLauncher {
         return GlobalKafkaConfiguration.get().getConnectionURL();
     }
 
-    private URL retrieveJenkinsURL() {
+    private URL retrieveJenkinsURL() throws RemotingKafkaConfigurationException {
         JenkinsLocationConfiguration loc = null;
         try {
             loc = JenkinsLocationConfiguration.get();
         } catch (Exception e) {
-            throw new IllegalStateException(Messages.KafkaComputerLauncher_NoJenkinsURL());
+            throw new RemotingKafkaConfigurationException(Messages.KafkaComputerLauncher_NoJenkinsURL());
         }
         String jenkinsURL = loc.getUrl();
         URL url;
         try {
             if (jenkinsURL == null)
-                throw new IllegalStateException(Messages.KafkaComputerLauncher_MalformedJenkinsURL());
+                throw new RemotingKafkaConfigurationException(Messages.KafkaComputerLauncher_MalformedJenkinsURL());
             url = new URL(jenkinsURL);
         } catch (MalformedURLException e) {
-            throw new IllegalStateException(Messages.KafkaComputerLauncher_MalformedJenkinsURL());
+            throw new RemotingKafkaConfigurationException(Messages.KafkaComputerLauncher_MalformedJenkinsURL());
         }
         return url;
     }
