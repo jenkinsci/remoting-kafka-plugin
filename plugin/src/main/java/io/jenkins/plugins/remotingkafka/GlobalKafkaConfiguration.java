@@ -31,14 +31,14 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
 
     public FormValidation doCheckConnectionURL(@QueryParameter String connectionURL) {
         if (StringUtils.isBlank(connectionURL)) {
-            return FormValidation.warning("Please specify a Kafka connection URL");
+            return FormValidation.warning(Messages.GlobalKafkaConfiguration_KafkaConnectionURLWarning());
         }
         return FormValidation.ok();
     }
 
     public FormValidation doCheckZookeeperURL(@QueryParameter String zookeeperURL) {
         if (StringUtils.isBlank(zookeeperURL)) {
-            return FormValidation.warning("Please specify a Zookeeper URL");
+            return FormValidation.warning(Messages.GlobalKafkaConfiguration_ZookeeperURLWarning());
         }
         return FormValidation.ok();
     }

@@ -41,9 +41,11 @@ public class KafkaComputerLauncher extends ComputerLauncher {
     }
 
     @Override
-    public synchronized void launch(SlaveComputer computer, final TaskListener listener) throws IOException, InterruptedException {
+    public synchronized void launch(SlaveComputer computer, final TaskListener listener)
+            throws IOException, InterruptedException {
         launcherExecutorService = Executors.newSingleThreadExecutor(
-                new NamingThreadFactory(Executors.defaultThreadFactory(), "KafkaComputerLauncher.launch for '" + computer.getName() + "' node"));
+                new NamingThreadFactory(Executors.defaultThreadFactory(),
+                        "KafkaComputerLauncher.launch for '" + computer.getName() + "' node"));
         Set<Callable<Boolean>> callables = new HashSet<>();
         callables.add(new Callable<Boolean>() {
             @Override
@@ -65,7 +67,7 @@ public class KafkaComputerLauncher extends ComputerLauncher {
             List<Future<Boolean>> results;
             final ExecutorService srv = launcherExecutorService;
             if (srv == null) {
-                throw new IllegalStateException("Launcher Executor Service should be always non-null here, because the task allocates and closes service on its own");
+                throw new IllegalStateException(Messages.KafkaComputerLauncher_NonnullExecutorService());
             }
             results = srv.invokeAll(callables);
             Boolean res;
@@ -76,12 +78,10 @@ public class KafkaComputerLauncher extends ComputerLauncher {
                 res = Boolean.FALSE;
             }
             if (!res) {
-                listener.getLogger().println("Launch failed");
+                listener.getLogger().println(Messages.KafkaComputerLauncher_LaunchFailed());
             } else {
-                System.out.println("Launch successfully");
+                System.out.println(Messages.KafkaComputerLauncher_LaunchSuccessful());
             }
-        } catch (InterruptedException e) {
-            System.out.println("Interrupted Exception");
         } finally {
             ExecutorService srv = launcherExecutorService;
             if (srv != null) {
@@ -122,15 +122,16 @@ public class KafkaComputerLauncher extends ComputerLauncher {
         try {
             loc = JenkinsLocationConfiguration.get();
         } catch (Exception e) {
-            throw new IllegalStateException("Unable to retrieve jenkins URL");
+            throw new IllegalStateException(Messages.KafkaComputerLauncher_NoJenkinsURL());
         }
         String jenkinsURL = loc.getUrl();
         URL url;
         try {
-            if (jenkinsURL == null) throw new IllegalStateException("Malformed Jenkins URL exception");
+            if (jenkinsURL == null)
+                throw new IllegalStateException(Messages.KafkaComputerLauncher_MalformedJenkinsURL());
             url = new URL(jenkinsURL);
         } catch (MalformedURLException e) {
-            throw new IllegalStateException("Malformed Jenkins URL exception");
+            throw new IllegalStateException(Messages.KafkaComputerLauncher_MalformedJenkinsURL());
         }
         return url;
     }
@@ -138,7 +139,7 @@ public class KafkaComputerLauncher extends ComputerLauncher {
     @Extension
     public static class DescriptorImpl extends Descriptor<ComputerLauncher> {
         public String getDisplayName() {
-            return "Launch agents with Kafka";
+            return Messages.KafkaComputerLauncher_DescriptorDisplayName();
         }
     }
 }
