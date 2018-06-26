@@ -55,7 +55,9 @@ public class KafkaComputerLauncher extends ComputerLauncher {
             public Boolean call() throws Exception {
                 String topic = KafkaConfigs.getConnectionTopic(computer.getName(), retrieveJenkinsURL());
                 KafkaUtils.createTopic(topic, GlobalKafkaConfiguration.get().getZookeeperURL(), 4, 1);
-                waitForSecretValidation(computer.getName());
+                if (!isValidAgent(computer.getName())) {
+                    return false;
+                }
                 ChannelBuilder cb = new ChannelBuilder(computer.getName(), computer.threadPoolForRemoting)
                         .withHeaderStream(listener.getLogger());
                 CommandTransport ct = makeTransport(computer);
@@ -145,7 +147,14 @@ public class KafkaComputerLauncher extends ComputerLauncher {
         return url;
     }
 
-    private void waitForSecretValidation(@Nonnull String agentName) throws RemotingKafkaConfigurationException {
+    /**
+     * Wait for secret confirmation from agent.
+     *
+     * @param agentName
+     * @return
+     * @throws RemotingKafkaConfigurationException
+     */
+    private boolean isValidAgent(@Nonnull String agentName) throws RemotingKafkaConfigurationException {
         String kafkaURL = getKafkaURL();
         URL jenkinsURL = retrieveJenkinsURL();
         String topic = KafkaConfigs.getConnectionTopic(agentName, jenkinsURL);
@@ -159,8 +168,8 @@ public class KafkaComputerLauncher extends ComputerLauncher {
                 .withConsumerTopic(topic)
                 .withProducerPartition(KafkaConfigs.MASTER_AGENT_SECRET_PARTITION)
                 .withConsumerPartition(KafkaConfigs.AGENT_MASTER_SECRET_PARTITION);
-        KafkaSecretManager secretManager = new KafkaSecretManager(agentName, settings);
-        secretManager.waitForValidAgent();
+        KafkaSecretManager secretManager = new KafkaSecretManager(agentName, settings, 30000);
+        return secretManager.waitForValidAgent();
     }
 
     @Extension

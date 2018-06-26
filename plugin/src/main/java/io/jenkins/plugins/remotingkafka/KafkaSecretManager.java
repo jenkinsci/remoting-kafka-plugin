@@ -31,8 +31,12 @@ public final class KafkaSecretManager {
     private final int consumerPartition;
     private Producer<String, byte[]> producer;
     private Consumer<String, byte[]> consumer;
+    /**
+     * Timeout in milliseconds.
+     */
+    private int timeout;
 
-    public KafkaSecretManager(String agentName, KafkaTransportBuilder settings) {
+    public KafkaSecretManager(String agentName, KafkaTransportBuilder settings, int timeout) {
         this.agentName = agentName;
         this.producer = settings.getProducer();
         this.consumer = settings.getConsumer();
@@ -42,23 +46,31 @@ public final class KafkaSecretManager {
         this.consumerTopic = settings.getConsumerTopic();
         this.consumerKey = settings.getConsumerKey();
         this.consumerPartition = settings.getConsumerPartition();
+        this.timeout = timeout;
     }
 
     public static String getConnectionSecret(String agentName) {
         return AGENT_SECRET.mac(agentName);
     }
 
-    public void waitForValidAgent() throws RemotingKafkaConfigurationException {
+    public boolean waitForValidAgent() throws RemotingKafkaConfigurationException {
         initHandshake();
-        waitForSecret();
+        return waitForSecret();
     }
 
-    private void waitForSecret() {
+    private boolean waitForSecret() {
         String connectionSecret = getConnectionSecret(agentName);
         String agentSecret = "";
         TopicPartition partition = new TopicPartition(consumerTopic, consumerPartition);
         consumer.assign(Arrays.asList(partition));
+        long start = System.currentTimeMillis();
         while (true) {
+            long current = System.currentTimeMillis();
+            if (current - start > timeout) {
+                LOGGER.warning("Timeout for waiting a secret from agent, restarting the agent...");
+                consumer.close();
+                return false;
+            }
             ConsumerRecords<String, byte[]> records = consumer.poll(0);
             consumer.commitSync();
             for (ConsumerRecord<String, byte[]> record : records) {
@@ -68,7 +80,7 @@ public final class KafkaSecretManager {
                     agentSecret = receivedValue;
                     if (connectionSecret.equals(agentSecret)) {
                         consumer.close();
-                        return;
+                        return true;
                     } else {
                         LOGGER.warning("Please sent a valid secret");
                     }
