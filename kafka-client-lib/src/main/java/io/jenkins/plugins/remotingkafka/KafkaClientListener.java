@@ -57,14 +57,12 @@ public final class KafkaClientListener implements Runnable {
                 for (ConsumerRecord<String, byte[]> record : records) {
                     if (record.key().equals(consumerKey)) {
                         receivedMessage = new String(record.value(), UTF_8);
-                        LOGGER.info("Received an in message=" + receivedMessage);
                     }
                 }
 
                 // Send to master.
                 if (receivedMessage.equals(inMessage)) {
                     producer.send(new ProducerRecord<>(producerTopic, producerPartition, producerKey, outMessage.getBytes(UTF_8)));
-                    LOGGER.info("Sent an out message=" + outMessage);
                     break;
                 }
             }
@@ -73,7 +71,7 @@ public final class KafkaClientListener implements Runnable {
             producer.close();
         }
         if (consumer != null) {
-            consumer.close();
+            KafkaUtils.unassignConsumer(consumer);
         }
     }
 }

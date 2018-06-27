@@ -3,6 +3,7 @@ package io.jenkins.plugins.remotingkafka.commandtransport;
 import hudson.remoting.Capability;
 import hudson.remoting.Command;
 import hudson.remoting.SynchronousCommandTransport;
+import io.jenkins.plugins.remotingkafka.KafkaUtils;
 import io.jenkins.plugins.remotingkafka.builder.KafkaTransportBuilder;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.kafka.clients.consumer.Consumer;
@@ -71,7 +72,7 @@ public class KafkaClassicCommandTransport extends SynchronousCommandTransport {
     @Override
     public final void closeRead() throws IOException {
         consumer.commitSync();
-        consumer.close();
+        KafkaUtils.unassignConsumer(consumer);
     }
 
     @Override

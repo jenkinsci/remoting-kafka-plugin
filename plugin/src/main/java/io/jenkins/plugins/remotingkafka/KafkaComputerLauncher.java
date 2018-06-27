@@ -55,7 +55,7 @@ public class KafkaComputerLauncher extends ComputerLauncher {
             public Boolean call() throws Exception {
                 String topic = KafkaConfigs.getConnectionTopic(computer.getName(), retrieveJenkinsURL());
                 KafkaUtils.createTopic(topic, GlobalKafkaConfiguration.get().getZookeeperURL(), 4, 1);
-                if (!isValidAgent(computer.getName())) {
+                if (!isValidAgent(computer.getName(), listener)) {
                     return false;
                 }
                 ChannelBuilder cb = new ChannelBuilder(computer.getName(), computer.threadPoolForRemoting)
@@ -71,7 +71,6 @@ public class KafkaComputerLauncher extends ComputerLauncher {
             }
         });
         try {
-            long time = System.currentTimeMillis();
             List<Future<Boolean>> results;
             final ExecutorService srv = launcherExecutorService;
             if (srv == null) {
@@ -88,7 +87,7 @@ public class KafkaComputerLauncher extends ComputerLauncher {
             if (!res) {
                 listener.getLogger().println(Messages.KafkaComputerLauncher_LaunchFailed());
             } else {
-                System.out.println(Messages.KafkaComputerLauncher_LaunchSuccessful());
+                listener.getLogger().println(Messages.KafkaComputerLauncher_LaunchSuccessful());
             }
         } finally {
             ExecutorService srv = launcherExecutorService;
@@ -149,12 +148,11 @@ public class KafkaComputerLauncher extends ComputerLauncher {
 
     /**
      * Wait for secret confirmation from agent.
-     *
      * @param agentName
      * @return
      * @throws RemotingKafkaConfigurationException
      */
-    private boolean isValidAgent(@Nonnull String agentName) throws RemotingKafkaConfigurationException {
+    private boolean isValidAgent(@Nonnull String agentName, TaskListener listener) throws RemotingKafkaConfigurationException, InterruptedException {
         String kafkaURL = getKafkaURL();
         URL jenkinsURL = retrieveJenkinsURL();
         String topic = KafkaConfigs.getConnectionTopic(agentName, jenkinsURL);
@@ -168,7 +166,7 @@ public class KafkaComputerLauncher extends ComputerLauncher {
                 .withConsumerTopic(topic)
                 .withProducerPartition(KafkaConfigs.MASTER_AGENT_SECRET_PARTITION)
                 .withConsumerPartition(KafkaConfigs.AGENT_MASTER_SECRET_PARTITION);
-        KafkaSecretManager secretManager = new KafkaSecretManager(agentName, settings, 30000);
+        KafkaSecretManager secretManager = new KafkaSecretManager(agentName, settings, 30000, listener);
         return secretManager.waitForValidAgent();
     }
 
