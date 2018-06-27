@@ -14,10 +14,8 @@
     <packaging>pom</packaging>
 
     <properties>
-        <jenkins-core.version>2.127-20180610.103314-1</jenkins-core.version>
-        <jenkins-war.version>2.127-20180610.103343-1</jenkins-war.version>
-        <remoting.version>3.22-20180610.103008-1</remoting.version>
-        <!--<jenkins.version>2.60.3</jenkins.version>-->
+        <remoting.version>3.22</remoting.version>
+        <jenkins.version>2.129</jenkins.version>
         <java.level>8</java.level>
     </properties>
 
