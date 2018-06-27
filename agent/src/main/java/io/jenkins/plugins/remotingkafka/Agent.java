@@ -1,6 +1,8 @@
 package io.jenkins.plugins.remotingkafka;
 
 import hudson.remoting.EngineListener;
+import io.jenkins.plugins.remotingkafka.builder.KafkaTransportBuilder;
+import io.jenkins.plugins.remotingkafka.exception.RemotingKafkaConfigurationException;
 import org.jenkinsci.remoting.engine.WorkDirManager;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
@@ -22,7 +24,7 @@ public class Agent {
         this.options = options;
     }
 
-    public static void main(String... args) throws InterruptedException, IOException {
+    public static void main(String... args) throws InterruptedException, IOException, RemotingKafkaConfigurationException {
         Options options = new Options();
         Agent agent = new Agent(options);
 
@@ -50,8 +52,25 @@ public class Agent {
             }
         }
 
+        if (options.secret == null) {
+            LOGGER.info("Please provide a secret");
+            System.exit(-1);
+        }
         URL masterURL = new URL(options.master);
-        Engine engine = new Engine(new CuiListener(), masterURL, options.name, options.kafkaURL);
+        String topic = KafkaConfigs.getConnectionTopic(options.name, masterURL);
+        KafkaTransportBuilder listenerSettings = new KafkaTransportBuilder()
+                .withProducer(KafkaUtils.createByteProducer(options.kafkaURL))
+                .withConsumer(KafkaUtils.createByteConsumer(options.kafkaURL,
+                        KafkaConfigs.getConsumerGroupID(options.name, masterURL)))
+                .withProducerTopic(topic)
+                .withConsumerTopic(topic)
+                .withProducerKey(KafkaConfigs.getAgentMasterSecretKey(options.name, masterURL))
+                .withConsumerKey(KafkaConfigs.getMasterAgentSecretKey(options.name, masterURL))
+                .withProducerPartition(KafkaConfigs.AGENT_MASTER_SECRET_PARTITION)
+                .withConsumerPartition(KafkaConfigs.MASTER_AGENT_SECRET_PARTITION);
+        KafkaClientListener secretListener = new KafkaClientListener("hello", options.secret, listenerSettings);
+        new Thread(secretListener).start();
+        Engine engine = new Engine(new CuiListener(), masterURL, options.name, options.kafkaURL, options.secret);
         engine.setInternalDir(WorkDirManager.DirType.INTERNAL_DIR.getDefaultLocation());
         engine.setFailIfWorkDirIsMissing(WorkDirManager.DEFAULT_FAIL_IF_WORKDIR_IS_MISSING);
         engine.startEngine();

@@ -10,6 +10,7 @@ import kafka.utils.ZKStringSerializer$;
 import kafka.utils.ZkUtils;
 import org.I0Itec.zkclient.ZkClient;
 import org.I0Itec.zkclient.ZkConnection;
+import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
@@ -17,6 +18,7 @@ import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 
+import java.util.ArrayList;
 import java.util.Properties;
 
 public class KafkaUtils {
@@ -44,6 +46,10 @@ public class KafkaUtils {
         return consumer;
     }
 
+    public static void unassignConsumer(Consumer<String, byte[]> consumer) {
+        consumer.assign(new ArrayList<>());
+        consumer.close();
+    }
 
     public static void createTopic(String topic, String zookeeperHost, int noOfPartitions, int noOfReplication) {
         ZkClient zkClient = null;

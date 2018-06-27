@@ -1,7 +1,7 @@
 package io.jenkins.plugins.remoting.kafka.builder;
 
 import hudson.remoting.Capability;
-import io.jenkins.plugins.remotingkafka.builder.KafkaClassicCommandTransportBuilder;
+import io.jenkins.plugins.remotingkafka.builder.KafkaTransportBuilder;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -10,21 +10,21 @@ import static org.junit.Assert.assertNotEquals;
 public class KafkaClassicCommandTransportBuilderTest {
     @Test
     public void testWithCapability() {
-        KafkaClassicCommandTransportBuilder builder = new KafkaClassicCommandTransportBuilder()
+        KafkaTransportBuilder builder = new KafkaTransportBuilder()
                 .withRemoteCapability(new Capability());
         assertNotEquals(null, builder.getRemoteCapability());
     }
 
     @Test
     public void testWithProducerTopic() {
-        KafkaClassicCommandTransportBuilder builder = new KafkaClassicCommandTransportBuilder()
+        KafkaTransportBuilder builder = new KafkaTransportBuilder()
                 .withProducerTopic("test");
         assertEquals("test", builder.getProducerTopic());
     }
 
     @Test
     public void testWithConsumerTopic() {
-        KafkaClassicCommandTransportBuilder builder = new KafkaClassicCommandTransportBuilder()
+        KafkaTransportBuilder builder = new KafkaTransportBuilder()
                 .withConsumerTopic("test");
         assertEquals("test", builder.getConsumerTopic());
     }
@@ -32,7 +32,7 @@ public class KafkaClassicCommandTransportBuilderTest {
 
     @Test
     public void testWithProducerKey() {
-        KafkaClassicCommandTransportBuilder builder = new KafkaClassicCommandTransportBuilder()
+        KafkaTransportBuilder builder = new KafkaTransportBuilder()
                 .withProducerKey("test");
         assertEquals("test", builder.getProducerKey());
     }
@@ -40,7 +40,7 @@ public class KafkaClassicCommandTransportBuilderTest {
 
     @Test
     public void testWithConsumerKey() {
-        KafkaClassicCommandTransportBuilder builder = new KafkaClassicCommandTransportBuilder()
+        KafkaTransportBuilder builder = new KafkaTransportBuilder()
                 .withConsumerKey("test");
         assertEquals("test", builder.getConsumerKey());
     }
@@ -48,21 +48,21 @@ public class KafkaClassicCommandTransportBuilderTest {
 
     @Test
     public void testWithConsumerPartition() {
-        KafkaClassicCommandTransportBuilder builder = new KafkaClassicCommandTransportBuilder()
+        KafkaTransportBuilder builder = new KafkaTransportBuilder()
                 .withConsumerPartition(0);
         assertEquals(0, builder.getConsumerPartition());
     }
 
     @Test
     public void testWithProducerPartition() {
-        KafkaClassicCommandTransportBuilder builder = new KafkaClassicCommandTransportBuilder()
+        KafkaTransportBuilder builder = new KafkaTransportBuilder()
                 .withProducerPartition(0);
         assertEquals(0, builder.getProducerPartition());
     }
 
     @Test
     public void testWithPollTimeout() {
-        KafkaClassicCommandTransportBuilder builder = new KafkaClassicCommandTransportBuilder()
+        KafkaTransportBuilder builder = new KafkaTransportBuilder()
                 .withPollTimeout(0);
         assertEquals(0, builder.getPollTimeout());
     }

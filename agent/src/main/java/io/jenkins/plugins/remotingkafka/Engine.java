@@ -1,7 +1,7 @@
 package io.jenkins.plugins.remotingkafka;
 
 import hudson.remoting.*;
-import io.jenkins.plugins.remotingkafka.builder.KafkaClassicCommandTransportBuilder;
+import io.jenkins.plugins.remotingkafka.builder.KafkaTransportBuilder;
 import io.jenkins.plugins.remotingkafka.commandtransport.KafkaClassicCommandTransport;
 import io.jenkins.plugins.remotingkafka.exception.RemotingKafkaException;
 import org.jenkinsci.remoting.engine.WorkDirManager;
@@ -29,6 +29,7 @@ public class Engine extends Thread {
     private static final ThreadLocal<Engine> CURRENT = new ThreadLocal<>();
     private final String agentName;
     private final String kafkaURL;
+    private final String secret;
     private final EngineListenerSplitter events = new EngineListenerSplitter();
 
     /**
@@ -50,35 +51,28 @@ public class Engine extends Thread {
 
     @CheckForNull
     private Path workDir;
-
     /**
      * Specifies a destination for the agent log.
      */
     @CheckForNull
     private Path agentLog;
-
     @CheckForNull
     private JarCache jarCache = null;
-
     @CheckForNull
     private Path loggingConfigFilePath = null;
-
     @Nonnull
     private String internalDir = WorkDirManager.DirType.INTERNAL_DIR.getDefaultLocation();
-
     @Nonnull
     private boolean failIfWorkDirIsMissing = WorkDirManager.DEFAULT_FAIL_IF_WORKDIR_IS_MISSING;
-
     private URL masterURL;
-
     private DelegatingX509ExtendedTrustManager agentTrustManager = new DelegatingX509ExtendedTrustManager(new BlindTrustX509ExtendedTrustManager());
 
-
-    public Engine(EngineListener listener, URL masterURL, String agentName, String kafkaURL) {
+    public Engine(EngineListener listener, URL masterURL, String agentName, String kafkaURL, String secret) {
         this.events.add(listener);
         this.masterURL = masterURL;
         this.agentName = agentName;
         this.kafkaURL = kafkaURL;
+        this.secret = secret;
         if (kafkaURL == null || masterURL == null) throw new IllegalArgumentException("No URLs given");
         setUncaughtExceptionHandler((t, e) -> {
             LOGGER.log(Level.SEVERE, "Uncaught exception in Engine thread " + t, e);
@@ -165,7 +159,7 @@ public class Engine extends Thread {
     }
 
     private CommandTransport makeTransport() throws RemotingKafkaException {
-        KafkaClassicCommandTransport transport = new KafkaClassicCommandTransportBuilder()
+        KafkaClassicCommandTransport transport = new KafkaTransportBuilder()
                 .withRemoteCapability(new Capability())
                 .withProducerKey(KafkaConfigs.getAgentMasterCommandKey(agentName, masterURL))
                 .withConsumerKey(KafkaConfigs.getMasterAgentCommandKey(agentName, masterURL))

@@ -15,4 +15,7 @@ public class Options {
 
     @Option(name = "-kafkaURL", usage = "Kafka host and port address identifier")
     public String kafkaURL;
+
+    @Option(name = "-secret", usage = "Secret to send to master to establish a secure connection")
+    public String secret;
 }
