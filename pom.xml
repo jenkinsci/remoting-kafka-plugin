@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.jenkins-ci</groupId>
@@ -12,7 +11,7 @@
     <artifactId>remoting-kafka-plugin</artifactId>
     <name>Remoting Kafka Plugin</name>
     <description>Allows users to start agent using Kafka</description>
-    <version>1.0.0-alpha-1-SNAPSHOT</version>
+    <version>1.0.0-alpha-1</version>
     <packaging>pom</packaging>
 
     <properties>
@@ -38,7 +37,8 @@
         <connection>scm:git:git://github.com/jenkinsci/remoting-kafka-plugin.git</connection>
         <developerConnection>scm:git:git@github.com:jenkinsci/remoting-kafka-plugin.git</developerConnection>
         <url>https://github.com/jenkinsci/remoting-kafka-plugin</url>
-    </scm>
+      <tag>remoting-kafka-plugin-1.0.0-alpha-1</tag>
+  </scm>
 
     <repositories>
         <repository>
