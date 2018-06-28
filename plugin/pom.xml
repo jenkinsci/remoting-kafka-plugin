@@ -10,7 +10,7 @@
 
     <groupId>io.jenkins.plugins.remoting-kafka</groupId>
     <artifactId>remoting-kafka</artifactId>
-    <version>1.0.0-alpha-1</version>
+    <version>1.0.0-alpha-2-SNAPSHOT</version>
     <packaging>hpi</packaging>
     <name>Remoting Kafka Plugin Module</name>
     <properties>
@@ -22,11 +22,7 @@
         <dependency>
             <groupId>io.jenkins.plugins.remoting-kafka</groupId>
             <artifactId>kafka-client-lib</artifactId>
-            <version>1.0.0-alpha-1</version>
+            <version>1.0.0-alpha-2-SNAPSHOT</version>
         </dependency>
     </dependencies>
-
-  <scm>
-    <tag>remoting-kafka-plugin-1.0.0-alpha-1</tag>
-  </scm>
 </project>
