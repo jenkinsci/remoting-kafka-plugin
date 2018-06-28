@@ -8,7 +8,7 @@
         <version>1.46</version>
     </parent>
 
-    <groupId>io.jenkins.plugins.remoting-kafka</groupId>
+    <groupId>io.jenkins.plugins</groupId>
     <artifactId>remoting-kafka-plugin</artifactId>
     <name>Remoting Kafka Plugin</name>
     <description>Allows users to start agent using Kafka</description>

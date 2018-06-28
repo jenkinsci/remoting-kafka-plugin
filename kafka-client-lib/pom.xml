@@ -3,13 +3,14 @@
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <groupId>io.jenkins.plugins.remoting-kafka</groupId>
+        <groupId>io.jenkins.plugins</groupId>
         <artifactId>remoting-kafka-plugin</artifactId>
         <version>1.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
+    <groupId>io.jenkins.plugins</groupId>
     <artifactId>kafka-client-lib</artifactId>
     <name>Kafka Client Module</name>
     <version>1.0-SNAPSHOT</version>

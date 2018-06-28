@@ -9,7 +9,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <groupId>io.jenkins.plugins.remoting-kafka</groupId>
+    <groupId>io.jenkins.plugins</groupId>
     <artifactId>remoting-kafka</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>hpi</packaging>
@@ -21,7 +21,7 @@
     </properties>
     <dependencies>
         <dependency>
-            <groupId>io.jenkins.plugins.remoting-kafka</groupId>
+            <groupId>io.jenkins.plugins</groupId>
             <artifactId>kafka-client-lib</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
