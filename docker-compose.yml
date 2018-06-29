@@ -2,19 +2,10 @@ version: '2'
 services:
     jenkins:
         build: .
-        depends_on: 
-            - remoting-kafka-agent
         ports:
             - "8080:8080"
-            - "50000:50000"
+            - "50000:50000"       
             - "36088:36088"
-    
-    remoting-kafka-agent:
-        build: 
-            context: agent/
-        command: -name test -master http://localhost:8080 -kafkaURL kafka:9092
-        links:
-            - kafka
 
     kafka:
         image: wurstmeister/kafka:1.1.0
