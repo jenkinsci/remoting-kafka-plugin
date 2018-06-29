@@ -11,6 +11,7 @@
     <artifactId>remoting-kafka-plugin</artifactId>
     <name>Remoting Kafka Plugin</name>
     <description>Allows users to start agent using Kafka</description>
+    <url>https://wiki.jenkins.io/display/JENKINS/Remoting+Kafka+Plugin</url>
     <version>1.0.0-alpha-2-SNAPSHOT</version>
     <packaging>pom</packaging>
 
@@ -37,8 +38,8 @@
         <connection>scm:git:git://github.com/jenkinsci/remoting-kafka-plugin.git</connection>
         <developerConnection>scm:git:git@github.com:jenkinsci/remoting-kafka-plugin.git</developerConnection>
         <url>https://github.com/jenkinsci/remoting-kafka-plugin</url>
-      <tag>HEAD</tag>
-  </scm>
+        <tag>HEAD</tag>
+    </scm>
 
     <repositories>
         <repository>
