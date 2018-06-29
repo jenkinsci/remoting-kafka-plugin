@@ -11,7 +11,7 @@ More information about this project can be found at: https://jenkins.io/projects
 
 ## Release Notes
 
-See the [Changelog](CHANGELOG.md).
+See the [CHANGELOG](CHANGELOG.md).
 
 ## How to use the plugin in alpha version
 
@@ -19,12 +19,15 @@ Alpha version of the plugin is now released under [Experimental Update Center](h
 
 Requirements to use the plugin under alpha released:
 
-1. You must have a Kafka cluster running (with host and port). If not, you can up Kafka and Zookeeper services using `docker-compose.yml` in this repository using command `docker-compose up -d`.
+1. The plugin runs with Jenkins v2.129 and above.
 
-2. You must have a custom agent JAR to use this plugin. The JAR can be downloaded from [Jenkins artifactory](https://repo.jenkins-ci.org/releases/io/jenkins/plugins/remoting-kafka/remoting-kafka-agent/1.0.0-alpha-1/remoting-kafka-agent-1.0.0-alpha-1.jar
-).
+2. You must have a Kafka cluster running (with host and port). If not, you can up Kafka and Zookeeper services using `docker-compose.yml` in this repository using command `docker-compose up -d zookeeper kafka`. You need to set the `DOCKERHOST` environment variable before up the services:
 
-3. The instruction to run the plugin is similar to what has been described in this [blogpost](https://jenkins.io/blog/2018/06/18/remoting-over-message-bus/) with some updates about security features (see [Changelog](CHANGELOG.md)). You need to:
+        export DOCKERHOST=$(ifconfig docker0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}')
+
+3. You must have a custom agent JAR to use this plugin. The JAR can be downloaded from [Jenkins artifactory](https://repo.jenkins-ci.org/releases/io/jenkins/plugins/remoting-kafka/remoting-kafka-agent/1.0.0-alpha-1/remoting-kafka-agent-1.0.0-alpha-1.jar).
+
+4. The instruction to run the plugin is similar to what has been described in this [blogpost](https://jenkins.io/blog/2018/06/18/remoting-over-message-bus/) with some updates about security features (see [Changelog](CHANGELOG.md)). You need to:
 
 - Config Kafka and Zookeeper address in Global System configuration.
 - Start an agent from UI (Launch agents with Kafka) then copy the command line string to start your agent in remote machine (similar to JNLP agent). For example:
