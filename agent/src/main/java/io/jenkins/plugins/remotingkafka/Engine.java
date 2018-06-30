@@ -2,7 +2,9 @@ package io.jenkins.plugins.remotingkafka;
 
 import hudson.remoting.*;
 import io.jenkins.plugins.remotingkafka.builder.KafkaTransportBuilder;
+import io.jenkins.plugins.remotingkafka.builder.SecurityPropertiesBuilder;
 import io.jenkins.plugins.remotingkafka.commandtransport.KafkaClassicCommandTransport;
+import io.jenkins.plugins.remotingkafka.enums.SecurityProtocol;
 import io.jenkins.plugins.remotingkafka.exception.RemotingKafkaException;
 import org.jenkinsci.remoting.engine.WorkDirManager;
 import org.jenkinsci.remoting.protocol.cert.BlindTrustX509ExtendedTrustManager;
@@ -14,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -159,6 +162,16 @@ public class Engine extends Thread {
     }
 
     private CommandTransport makeTransport() throws RemotingKafkaException {
+        Properties securityProps = new SecurityPropertiesBuilder()
+                .withSSLTruststoreLocation("../../certs/docker.kafka.server.truststore.jks")
+                .withSSLTruststorePassword("kafkadocker")
+                .withSSLKeystoreLocation("../../certs/docker.kafka.server.keystore.jks")
+                .withSSLKeystorePassword("kafkadocker")
+                .withSSLKeyPassword("kafkadocker")
+                .withSASLJassConfig("user", "password")
+                .withSecurityProtocol(SecurityProtocol.SASL_SSL)
+                .withSASLMechanism("PLAIN")
+                .build();
         KafkaClassicCommandTransport transport = new KafkaTransportBuilder()
                 .withRemoteCapability(new Capability())
                 .withProducerKey(KafkaConfigs.getAgentMasterCommandKey(agentName, masterURL))
@@ -167,8 +180,9 @@ public class Engine extends Thread {
                 .withConsumerTopic(KafkaConfigs.getConnectionTopic(agentName, masterURL))
                 .withProducerPartition(KafkaConfigs.AGENT_MASTER_CMD_PARTITION)
                 .withConsumerPartition(KafkaConfigs.MASTER_AGENT_CMD_PARTITION)
-                .withProducer(KafkaUtils.createByteProducer(kafkaURL))
-                .withConsumer(KafkaUtils.createByteConsumer(kafkaURL, KafkaConfigs.getConsumerGroupID(agentName, masterURL)))
+                .withProducer(KafkaUtils.createByteProducer(kafkaURL, securityProps))
+                .withConsumer(KafkaUtils.createByteConsumer(kafkaURL, KafkaConfigs.getConsumerGroupID(agentName, masterURL),
+                        securityProps))
                 .withPollTimeout(0)
                 .build();
         return transport;

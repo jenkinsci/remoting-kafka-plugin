@@ -2,11 +2,38 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
     <f:section title="${%Remoting Kafka Configuration}">
-        <f:entry field="connectionURL" title="${%Connection URL}">
-            <f:textbox/>
-        </f:entry>
         <f:entry field="zookeeperURL" title="${%Zookeeper URL}">
             <f:textbox/>
+        </f:entry>
+        <f:validateButton
+                title="${%Test Zookeeper Connection}" progress="${%Testing...}"
+                method="testZookeeperConnection" with="zookeeperURL" />
+        <f:entry field="brokerURL" title="${%Kafka Broker URL}">
+            <f:textbox/>
+        </f:entry>
+        <f:validateButton
+                title="${%Test Broker Connection}" progress="${%Testing...}"
+                method="testBrokerConnection" with="brokerURL" />
+        <f:entry field="username" title="${%Username}">
+            <f:textbox/>
+        </f:entry>
+        <f:entry field="password" title="${%Password}">
+            <f:password/>
+        </f:entry>
+        <f:entry field="sslTruststoreLocation" title="${%SSL Truststore Location}">
+            <f:textbox/>
+        </f:entry>
+        <f:entry field="sslTruststorePassword" title="${%SSL Truststore Password}">
+            <f:password/>
+        </f:entry>
+        <f:entry field="sslKeystoreLocation" title="${%SSL Keystore Location}">
+            <f:textbox/>
+        </f:entry>
+        <f:entry field="sslKeystorePassword" title="${%SSL Keystore Password}">
+            <f:password/>
+        </f:entry>
+        <f:entry field="sslKeyPassword" title="${%SSL Key Password}">
+            <f:password/>
         </f:entry>
     </f:section>
 </j:jelly>

@@ -8,10 +8,21 @@ import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
+import javax.servlet.ServletException;
+import java.io.IOException;
+import java.net.Socket;
+
 @Extension
 public class GlobalKafkaConfiguration extends GlobalConfiguration {
-    private String connectionURL;
+    private String brokerURL;
     private String zookeeperURL;
+    private String username;
+    private String password;
+    private String sslTruststoreLocation;
+    private String sslTruststorePassword;
+    private String sslKeystoreLocation;
+    private String sslKeystorePassword;
+    private String sslKeyPassword;
 
     public GlobalKafkaConfiguration() {
         load();
@@ -21,33 +32,98 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
         return GlobalConfiguration.all().get(GlobalKafkaConfiguration.class);
     }
 
-    public String getConnectionURL() {
-        return connectionURL;
+    public String getBrokerURL() {
+        return brokerURL;
     }
 
     public String getZookeeperURL() {
         return zookeeperURL;
     }
 
-    public FormValidation doCheckConnectionURL(@QueryParameter String connectionURL) {
-        if (StringUtils.isBlank(connectionURL)) {
-            return FormValidation.warning(Messages.GlobalKafkaConfiguration_KafkaConnectionURLWarning());
+    public String getUsername() {
+        return username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public String getSslTruststoreLocation() {
+        return sslTruststoreLocation;
+    }
+
+    public String getSslTruststorePassword() {
+        return sslTruststorePassword;
+    }
+
+    public String getSslKeystoreLocation() {
+        return sslKeystoreLocation;
+    }
+
+    public String getSslKeystorePassword() {
+        return sslKeystorePassword;
+    }
+
+    public String getSslKeyPassword() {
+        return sslKeyPassword;
+    }
+
+    public FormValidation doCheckBrokerURL(@QueryParameter("brokerURL") final String brokerURL) {
+        if (StringUtils.isBlank(brokerURL)) {
+            return FormValidation.error(Messages.GlobalKafkaConfiguration_KafkaConnectionURLWarning());
         }
         return FormValidation.ok();
     }
 
-    public FormValidation doCheckZookeeperURL(@QueryParameter String zookeeperURL) {
+    public FormValidation doCheckZookeeperURL(@QueryParameter("zookeeperURL") String zookeeperURL) {
         if (StringUtils.isBlank(zookeeperURL)) {
-            return FormValidation.warning(Messages.GlobalKafkaConfiguration_ZookeeperURLWarning());
+            return FormValidation.error(Messages.GlobalKafkaConfiguration_ZookeeperURLWarning());
         }
         return FormValidation.ok();
+    }
+
+    public FormValidation doTestZookeeperConnection(@QueryParameter("zookeeperURL") final String zookeeperURL)
+            throws IOException, ServletException {
+        try {
+            String[] hostport = zookeeperURL.split(":");
+            String host = hostport[0];
+            int port = Integer.parseInt(hostport[1]);
+            testConnection(host, port);
+            return FormValidation.ok("Success");
+        } catch (Exception e) {
+            return FormValidation.error("Connection error : " + e.getMessage());
+        }
+    }
+
+    public FormValidation doTestBrokerConnection(@QueryParameter("brokerURL") final String brokerURL)
+            throws IOException, ServletException {
+        try {
+            String[] hostport = brokerURL.split(":");
+            String host = hostport[0];
+            int port = Integer.parseInt(hostport[1]);
+            testConnection(host, port);
+            return FormValidation.ok("Success");
+        } catch (Exception e) {
+            return FormValidation.error("Connection error : " + e.getMessage());
+        }
     }
 
     @Override
-    public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
-        this.connectionURL = json.getString("connectionURL");
-        this.zookeeperURL = json.getString("zookeeperURL");
+    public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
+        this.brokerURL = formData.getString("brokerURL");
+        this.zookeeperURL = formData.getString("zookeeperURL");
+        this.username = formData.getString("username");
+        this.password = formData.getString("password");
+        this.sslTruststoreLocation = formData.getString("sslTruststoreLocation");
+        this.sslTruststorePassword = formData.getString("sslTruststorePassword");
+        this.sslKeystoreLocation = formData.getString("sslKeystoreLocation");
+        this.sslKeystorePassword = formData.getString("sslKeystorePassword");
+        this.sslKeyPassword = formData.getString("sslKeyPassword");
         save();
-        return true;
+        return super.configure(req, formData);
+    }
+
+    private void testConnection(String host, int port) throws IOException {
+        new Socket(host, port);
     }
 }

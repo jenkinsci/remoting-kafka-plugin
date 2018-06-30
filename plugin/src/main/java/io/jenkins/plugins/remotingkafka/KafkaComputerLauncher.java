@@ -8,7 +8,9 @@ import hudson.remoting.*;
 import hudson.slaves.ComputerLauncher;
 import hudson.slaves.SlaveComputer;
 import io.jenkins.plugins.remotingkafka.builder.KafkaTransportBuilder;
+import io.jenkins.plugins.remotingkafka.builder.SecurityPropertiesBuilder;
 import io.jenkins.plugins.remotingkafka.commandtransport.KafkaClassicCommandTransport;
+import io.jenkins.plugins.remotingkafka.enums.SecurityProtocol;
 import io.jenkins.plugins.remotingkafka.exception.RemotingKafkaConfigurationException;
 import io.jenkins.plugins.remotingkafka.exception.RemotingKafkaException;
 import jenkins.model.JenkinsLocationConfiguration;
@@ -21,10 +23,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.*;
 import java.util.concurrent.Future;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class KafkaComputerLauncher extends ComputerLauncher {
@@ -81,7 +85,7 @@ public class KafkaComputerLauncher extends ComputerLauncher {
             try {
                 res = results.get(0).get();
             } catch (ExecutionException e) {
-                System.out.println(e);
+                LOGGER.log(Level.SEVERE, "Execution exception when launch: ", e);
                 res = Boolean.FALSE;
             }
             if (!res) {
@@ -103,6 +107,17 @@ public class KafkaComputerLauncher extends ComputerLauncher {
         URL jenkinsURL = retrieveJenkinsURL();
         String kafkaURL = getKafkaURL();
         String topic = KafkaConfigs.getConnectionTopic(nodeName, jenkinsURL);
+        GlobalKafkaConfiguration kafkaConfig = GlobalKafkaConfiguration.get();
+        Properties securityProps = new SecurityPropertiesBuilder()
+                .withSSLTruststoreLocation(kafkaConfig.getSslTruststoreLocation())
+                .withSSLTruststorePassword(kafkaConfig.getSslTruststorePassword())
+                .withSSLKeystoreLocation(kafkaConfig.getSslKeystoreLocation())
+                .withSSLKeystorePassword(kafkaConfig.getSslKeystorePassword())
+                .withSSLKeyPassword(kafkaConfig.getSslKeyPassword())
+                .withSASLJassConfig(kafkaConfig.getUsername(), kafkaConfig.getPassword())
+                .withSecurityProtocol(SecurityProtocol.SASL_SSL)
+                .withSASLMechanism("PLAIN")
+                .build();
         KafkaClassicCommandTransport transport = new KafkaTransportBuilder()
                 .withRemoteCapability(new Capability())
                 .withProducerKey(KafkaConfigs.getMasterAgentCommandKey(nodeName, jenkinsURL))
@@ -111,9 +126,9 @@ public class KafkaComputerLauncher extends ComputerLauncher {
                 .withConsumerTopic(topic)
                 .withProducerPartition(KafkaConfigs.MASTER_AGENT_CMD_PARTITION)
                 .withConsumerPartition(KafkaConfigs.AGENT_MASTER_CMD_PARTITION)
-                .withProducer(KafkaUtils.createByteProducer(kafkaURL))
+                .withProducer(KafkaUtils.createByteProducer(kafkaURL, securityProps))
                 .withConsumer(KafkaUtils.createByteConsumer(kafkaURL,
-                        KafkaConfigs.getConsumerGroupID(nodeName, jenkinsURL)))
+                        KafkaConfigs.getConsumerGroupID(nodeName, jenkinsURL), securityProps))
                 .withPollTimeout(0)
                 .build();
         return transport;
@@ -124,7 +139,7 @@ public class KafkaComputerLauncher extends ComputerLauncher {
     }
 
     public String getKafkaURL() {
-        return GlobalKafkaConfiguration.get().getConnectionURL();
+        return GlobalKafkaConfiguration.get().getBrokerURL();
     }
 
     private URL retrieveJenkinsURL() throws RemotingKafkaConfigurationException {
@@ -148,18 +163,31 @@ public class KafkaComputerLauncher extends ComputerLauncher {
 
     /**
      * Wait for secret confirmation from agent.
+     *
      * @param agentName
      * @return
      * @throws RemotingKafkaConfigurationException
      */
-    private boolean isValidAgent(@Nonnull String agentName, TaskListener listener) throws RemotingKafkaConfigurationException, InterruptedException {
+    private boolean isValidAgent(@Nonnull String agentName, TaskListener listener)
+            throws RemotingKafkaConfigurationException, InterruptedException {
         String kafkaURL = getKafkaURL();
         URL jenkinsURL = retrieveJenkinsURL();
         String topic = KafkaConfigs.getConnectionTopic(agentName, jenkinsURL);
+        GlobalKafkaConfiguration kafkaConfig = GlobalKafkaConfiguration.get();
+        Properties securityProps = new SecurityPropertiesBuilder()
+                .withSSLTruststoreLocation(kafkaConfig.getSslTruststoreLocation())
+                .withSSLTruststorePassword(kafkaConfig.getSslTruststorePassword())
+                .withSSLKeystoreLocation(kafkaConfig.getSslKeystoreLocation())
+                .withSSLKeystorePassword(kafkaConfig.getSslKeystorePassword())
+                .withSSLKeyPassword(kafkaConfig.getSslKeyPassword())
+                .withSASLJassConfig(kafkaConfig.getUsername(), kafkaConfig.getPassword())
+                .withSecurityProtocol(SecurityProtocol.SASL_SSL)
+                .withSASLMechanism("PLAIN")
+                .build();
         KafkaTransportBuilder settings = new KafkaTransportBuilder()
-                .withProducer(KafkaUtils.createByteProducer(kafkaURL))
+                .withProducer(KafkaUtils.createByteProducer(kafkaURL, securityProps))
                 .withConsumer(KafkaUtils.createByteConsumer(kafkaURL,
-                        KafkaConfigs.getConsumerGroupID(agentName, jenkinsURL)))
+                        KafkaConfigs.getConsumerGroupID(agentName, jenkinsURL), securityProps))
                 .withProducerKey(KafkaConfigs.getMasterAgentSecretKey(agentName, jenkinsURL))
                 .withConsumerKey(KafkaConfigs.getAgentMasterSecretKey(agentName, jenkinsURL))
                 .withProducerTopic(topic)

@@ -18,7 +18,9 @@ public class KafkaProducerClient {
     public static KafkaProducerClient getInstance() {
         if (instance == null) {
             synchronized (KafkaProducerClient.class) {
-                if (instance == null) instance = new KafkaProducerClient();
+                if (instance == null) {
+                    instance = new KafkaProducerClient();
+                }
             }
         }
         return instance;
@@ -27,7 +29,11 @@ public class KafkaProducerClient {
     public Producer<String, byte[]> getByteProducer(Properties producerProps) {
         if (byteProducer == null) {
             synchronized (KafkaProducerClient.class) {
-                if (byteProducer == null) byteProducer = new KafkaProducer<>(producerProps);
+                if (byteProducer == null) {
+                    Thread.currentThread().setContextClassLoader(
+                            org.apache.kafka.clients.producer.KafkaProducer.class.getClassLoader());
+                    byteProducer = new KafkaProducer<>(producerProps);
+                }
             }
         }
         return byteProducer;

@@ -1,8 +1,8 @@
 package io.jenkins.plugins.remoting.kafka.builder;
 
 import io.jenkins.plugins.remotingkafka.KafkaConfigs;
-import io.jenkins.plugins.remotingkafka.builder.AutoOffsetReset;
 import io.jenkins.plugins.remotingkafka.builder.ConsumerPropertiesBuilder;
+import io.jenkins.plugins.remotingkafka.enums.AutoOffsetReset;
 import io.jenkins.plugins.remotingkafka.exception.RemotingKafkaConfigurationException;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.Test;

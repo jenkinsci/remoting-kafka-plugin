@@ -1,6 +1,7 @@
 package io.jenkins.plugins.remotingkafka.builder;
 
 import io.jenkins.plugins.remotingkafka.KafkaConfigs;
+import io.jenkins.plugins.remotingkafka.enums.AutoOffsetReset;
 import io.jenkins.plugins.remotingkafka.exception.RemotingKafkaConfigurationException;
 
 import javax.annotation.CheckForNull;
@@ -47,6 +48,8 @@ public class ConsumerPropertiesBuilder {
     @CheckForNull
     private Class valueDeserializer;
 
+    private Properties securityProps;
+
     public ConsumerPropertiesBuilder() {
         this.enableAutoCommit = true;
     }
@@ -81,8 +84,14 @@ public class ConsumerPropertiesBuilder {
         return this;
     }
 
+    public ConsumerPropertiesBuilder withSecurityProps(Properties props) {
+        this.securityProps = props;
+        return this;
+    }
+
+
     public Properties build() throws RemotingKafkaConfigurationException {
-        Properties props = new Properties();
+        Properties props = (securityProps == null) ? new Properties() : securityProps;
         if (bootsrapServers == null) {
             throw new RemotingKafkaConfigurationException("Please provide Kafka consumer bootstrap servers");
         }
@@ -102,6 +111,7 @@ public class ConsumerPropertiesBuilder {
             throw new RemotingKafkaConfigurationException("Please provide value deserializer class");
         }
         props.put(KafkaConfigs.VALUE_DESERIALIZER, valueDeserializer);
+
         return props;
     }
 }

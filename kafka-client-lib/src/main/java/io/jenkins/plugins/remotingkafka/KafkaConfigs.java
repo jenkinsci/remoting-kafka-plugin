@@ -5,6 +5,15 @@ import java.net.URL;
 public class KafkaConfigs {
     // Common configs.
     public static final String BOOTSTRAP_SERVERS = "bootstrap.servers";
+    public static final String SASL_JAAS_CONFIG = "sasl.jaas.config";
+    public static final String SECURITY_PROTOCOL = "security.protocol";
+    public static final String SASL_MECHANISM = "sasl.mechanism";
+    public static final String SSL_TRUSTSTORE_LOCATION = "ssl.truststore.location";
+    public static final String SSL_TRUSTSTORE_PASSWORD = "ssl.truststore.password";
+    public static final String SSL_KEYSTORE_LOCATION = "ssl.keystore.location";
+    public static final String SSL_KEYSTORE_PASSWORD = "ssl.keystore.password";
+    public static final String SSL_KEY_PASSWORD = "ssl.key.password";
+
     // Producer configs. TODO - add more configs.
     public static final String KEY_SERIALIZER = "key.serializer";
     public static final String VALUE_SERIALIZER = "value.serializer";

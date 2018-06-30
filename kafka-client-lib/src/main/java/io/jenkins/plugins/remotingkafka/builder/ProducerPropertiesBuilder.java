@@ -1,6 +1,7 @@
 package io.jenkins.plugins.remotingkafka.builder;
 
 import io.jenkins.plugins.remotingkafka.KafkaConfigs;
+import io.jenkins.plugins.remotingkafka.enums.ProducerAcks;
 import io.jenkins.plugins.remotingkafka.exception.RemotingKafkaConfigurationException;
 
 import javax.annotation.CheckForNull;
@@ -37,6 +38,8 @@ public class ProducerPropertiesBuilder {
     @CheckForNull
     private Class valueSerializer;
 
+    private Properties securityProps;
+
     public ProducerPropertiesBuilder withBoostrapServers(String boostrapServers) {
         this.bootsrapServers = boostrapServers;
         return this;
@@ -57,8 +60,13 @@ public class ProducerPropertiesBuilder {
         return this;
     }
 
+    public ProducerPropertiesBuilder withSecurityProps(Properties props) {
+        this.securityProps = props;
+        return this;
+    }
+
     public Properties build() throws RemotingKafkaConfigurationException {
-        Properties props = new Properties();
+        Properties props = (securityProps == null) ? new Properties() : securityProps;
         if (bootsrapServers == null) {
             throw new RemotingKafkaConfigurationException("Please provide Kafka producer bootstrap servers");
         }

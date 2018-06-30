@@ -41,3 +41,6 @@ buildNumber.properties
 
 # plugin dependencies
 work/
+
+# ssl certs
+certs/

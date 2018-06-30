@@ -1,9 +1,9 @@
 package io.jenkins.plugins.remotingkafka;
 
-import io.jenkins.plugins.remotingkafka.builder.AutoOffsetReset;
 import io.jenkins.plugins.remotingkafka.builder.ConsumerPropertiesBuilder;
-import io.jenkins.plugins.remotingkafka.builder.ProducerAcks;
 import io.jenkins.plugins.remotingkafka.builder.ProducerPropertiesBuilder;
+import io.jenkins.plugins.remotingkafka.enums.AutoOffsetReset;
+import io.jenkins.plugins.remotingkafka.enums.ProducerAcks;
 import io.jenkins.plugins.remotingkafka.exception.RemotingKafkaConfigurationException;
 import kafka.admin.AdminUtils;
 import kafka.utils.ZKStringSerializer$;
@@ -20,20 +20,26 @@ import org.apache.kafka.common.serialization.StringSerializer;
 
 import java.util.ArrayList;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 public class KafkaUtils {
-    public static Producer<String, byte[]> createByteProducer(String kafkaURL) throws RemotingKafkaConfigurationException {
+    private static final Logger LOGGER = Logger.getLogger(KafkaUtils.class.getName());
+
+    public static Producer<String, byte[]> createByteProducer(String kafkaURL, Properties securityProps)
+            throws RemotingKafkaConfigurationException {
         Properties producerProps = new ProducerPropertiesBuilder()
                 .withBoostrapServers(kafkaURL)
                 .withAcks(ProducerAcks.ALL)
                 .withKeySerializer(StringSerializer.class)
                 .withValueSerialier(ByteArraySerializer.class)
+                .withSecurityProps(securityProps)
                 .build();
         Producer<String, byte[]> producer = KafkaProducerClient.getInstance().getByteProducer(producerProps);
         return producer;
     }
 
-    public static KafkaConsumer<String, byte[]> createByteConsumer(String kafkaURL, String consumerGroupID) throws RemotingKafkaConfigurationException {
+    public static KafkaConsumer<String, byte[]> createByteConsumer(String kafkaURL, String consumerGroupID, Properties securityProps)
+            throws RemotingKafkaConfigurationException {
         Properties consumerProps = new ConsumerPropertiesBuilder()
                 .withBootstrapServers(kafkaURL)
                 .withGroupID(consumerGroupID)
@@ -41,7 +47,10 @@ public class KafkaUtils {
                 .withAutoOffsetReset(AutoOffsetReset.EARLIEST)
                 .withKeyDeserializer(StringDeserializer.class)
                 .withValueDeserializer(ByteArrayDeserializer.class)
+                .withSecurityProps(securityProps)
                 .build();
+        Thread.currentThread().setContextClassLoader(
+                org.apache.kafka.clients.consumer.KafkaConsumer.class.getClassLoader());
         KafkaConsumer<String, byte[]> consumer = new KafkaConsumer<>(consumerProps);
         return consumer;
     }
