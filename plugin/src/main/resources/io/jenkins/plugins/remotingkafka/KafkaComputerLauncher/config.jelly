@@ -1,4 +1,13 @@
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core"
->
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
+         xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+    <f:entry title="${%Kafka username}" field="kafkaUsername">
+        <f:textbox/>
+    </f:entry>
+    <f:entry title="${%SSL Truststore Location}" field="sslTruststoreLocation">
+        <f:textbox/>
+    </f:entry>
+    <f:entry title="${%SSL Keystore Location}" field="sslKeystoreLocation">
+        <f:textbox/>
+    </f:entry>
 </j:jelly>

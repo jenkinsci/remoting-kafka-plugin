@@ -18,4 +18,13 @@ public class Options {
 
     @Option(name = "-secret", usage = "Secret to send to master to establish a secure connection")
     public String secret;
+
+    @Option(name = "-kafkaUsername", usage = "Username to login to kafka broker")
+    public String kafkaUsername;
+
+    @Option(name = "-sslTruststoreLocation", usage = "Truststore location to do SSL handshake to Kafka broker")
+    public String sslTruststoreLocation;
+
+    @Option(name = "-sslKeystoreLocation", usage = "Username to login to kafka broker")
+    public String sslKeystoreLocation;
 }

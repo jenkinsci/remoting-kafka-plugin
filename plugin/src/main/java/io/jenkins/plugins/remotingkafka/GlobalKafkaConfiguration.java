@@ -82,6 +82,55 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
         return FormValidation.ok();
     }
 
+    public FormValidation doCheckUsername(@QueryParameter("username") String username) {
+        if (StringUtils.isBlank(username)) {
+            return FormValidation.error(Messages.GlobalKafkaConfiguration_KafkaSecurityWarning());
+        }
+        return FormValidation.ok();
+    }
+
+    public FormValidation doCheckPassword(@QueryParameter("password") String password) {
+        if (StringUtils.isBlank(password)) {
+            return FormValidation.error(Messages.GlobalKafkaConfiguration_KafkaSecurityWarning());
+        }
+        return FormValidation.ok();
+    }
+
+    public FormValidation doCheckSslTruststoreLocation(@QueryParameter("sslTruststoreLocation") String sslTruststoreLocation) {
+        if (StringUtils.isBlank(sslTruststoreLocation)) {
+            return FormValidation.error(Messages.GlobalKafkaConfiguration_KafkaSecurityWarning());
+        }
+        return FormValidation.ok();
+    }
+
+    public FormValidation doCheckSslTruststorePassword(@QueryParameter("sslTruststorePassword") String sslTruststorePassword) {
+        if (StringUtils.isBlank(sslTruststorePassword)) {
+            return FormValidation.error(Messages.GlobalKafkaConfiguration_KafkaSecurityWarning());
+        }
+        return FormValidation.ok();
+    }
+
+    public FormValidation doCheckSslKeystoreLocation(@QueryParameter("sslKeystoreLocation") String sslKeystoreLocation) {
+        if (StringUtils.isBlank(sslKeystoreLocation)) {
+            return FormValidation.error(Messages.GlobalKafkaConfiguration_KafkaSecurityWarning());
+        }
+        return FormValidation.ok();
+    }
+
+    public FormValidation doCheckSslKeystorePassword(@QueryParameter("sslKeystorePassword") String sslKeystorePassword) {
+        if (StringUtils.isBlank(sslKeystorePassword)) {
+            return FormValidation.error(Messages.GlobalKafkaConfiguration_KafkaSecurityWarning());
+        }
+        return FormValidation.ok();
+    }
+
+    public FormValidation doCheckSslKeyPassword(@QueryParameter("sslKeyPassword") String sslKeyPassword) {
+        if (StringUtils.isBlank(sslKeyPassword)) {
+            return FormValidation.error(Messages.GlobalKafkaConfiguration_KafkaSecurityWarning());
+        }
+        return FormValidation.ok();
+    }
+
     public FormValidation doTestZookeeperConnection(@QueryParameter("zookeeperURL") final String zookeeperURL)
             throws IOException, ServletException {
         try {

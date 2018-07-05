@@ -1,14 +1,17 @@
 package io.jenkins.plugins.remotingkafka;
 
 import hudson.remoting.EngineListener;
+import io.jenkins.plugins.remotingkafka.builder.KafkaPasswordManagerBuilder;
 import io.jenkins.plugins.remotingkafka.builder.KafkaTransportBuilder;
 import io.jenkins.plugins.remotingkafka.builder.SecurityPropertiesBuilder;
 import io.jenkins.plugins.remotingkafka.enums.SecurityProtocol;
 import io.jenkins.plugins.remotingkafka.exception.RemotingKafkaConfigurationException;
+import io.jenkins.plugins.remotingkafka.security.KafkaPasswordManager;
 import org.jenkinsci.remoting.engine.WorkDirManager;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 
+import java.io.Console;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URL;
@@ -59,15 +62,38 @@ public class Agent {
             LOGGER.info("Please provide a secret");
             System.exit(-1);
         }
+        if (options.kafkaUsername == null) {
+            LOGGER.info("Please provide Kafka username");
+            System.exit(-1);
+        }
+        if (options.sslKeystoreLocation == null) {
+            LOGGER.info("Please provide SSL keystore location");
+            System.exit(-1);
+        }
+        if (options.sslTruststoreLocation == null) {
+            LOGGER.info("Please provide SSL truststore location");
+            System.exit(-1);
+        }
+        KafkaPasswordManagerBuilder passwordManagerBuilder = new KafkaPasswordManagerBuilder();
+        Console cons = System.console();
+        System.out.print("Kafka password: ");
+        passwordManagerBuilder.withKafkaPassword(String.valueOf(cons.readPassword()));
+        System.out.print("SSL truststore password: ");
+        passwordManagerBuilder.withSSLTruststorePassword(String.valueOf(cons.readPassword()));
+        System.out.print("SSL keystore password: ");
+        passwordManagerBuilder.withSSLKeystorePassword(String.valueOf(cons.readPassword()));
+        System.out.print("SSL key password: ");
+        passwordManagerBuilder.withSSLKeyPassword(String.valueOf(cons.readPassword()));
+        KafkaPasswordManager passwordManager = passwordManagerBuilder.build();
         URL masterURL = new URL(options.master);
         String topic = KafkaConfigs.getConnectionTopic(options.name, masterURL);
         Properties securityProps = new SecurityPropertiesBuilder()
-                .withSSLTruststoreLocation("../../certs/docker.kafka.server.truststore.jks")
-                .withSSLTruststorePassword("kafkadocker")
-                .withSSLKeystoreLocation("../../certs/docker.kafka.server.keystore.jks")
-                .withSSLKeystorePassword("kafkadocker")
-                .withSSLKeyPassword("kafkadocker")
-                .withSASLJassConfig("jenkins", "jenkins-secret")
+                .withSSLTruststoreLocation(options.sslTruststoreLocation)
+                .withSSLTruststorePassword(passwordManager.getSslTruststorePassword())
+                .withSSLKeystoreLocation(options.sslKeystoreLocation)
+                .withSSLKeystorePassword(passwordManager.getSslKeystorePassword())
+                .withSSLKeyPassword(passwordManager.getSslKeyPassword())
+                .withSASLJassConfig(options.kafkaUsername, passwordManager.getKafkaPassword())
                 .withSecurityProtocol(SecurityProtocol.SASL_SSL)
                 .withSASLMechanism("PLAIN")
                 .build();
@@ -83,7 +109,7 @@ public class Agent {
                 .withConsumerPartition(KafkaConfigs.MASTER_AGENT_SECRET_PARTITION);
         KafkaClientListener secretListener = new KafkaClientListener("hello", options.secret, listenerSettings);
         new Thread(secretListener).start();
-        Engine engine = new Engine(new CuiListener(), masterURL, options.name, options.kafkaURL, options.secret);
+        Engine engine = new Engine(new CuiListener(), masterURL, options, passwordManager);
         engine.setInternalDir(WorkDirManager.DirType.INTERNAL_DIR.getDefaultLocation());
         engine.setFailIfWorkDirIsMissing(WorkDirManager.DEFAULT_FAIL_IF_WORKDIR_IS_MISSING);
         engine.startEngine();

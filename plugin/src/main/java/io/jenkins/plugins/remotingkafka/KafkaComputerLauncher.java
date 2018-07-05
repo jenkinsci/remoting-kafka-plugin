@@ -7,6 +7,7 @@ import hudson.model.TaskListener;
 import hudson.remoting.*;
 import hudson.slaves.ComputerLauncher;
 import hudson.slaves.SlaveComputer;
+import hudson.util.FormValidation;
 import io.jenkins.plugins.remotingkafka.builder.KafkaTransportBuilder;
 import io.jenkins.plugins.remotingkafka.builder.SecurityPropertiesBuilder;
 import io.jenkins.plugins.remotingkafka.commandtransport.KafkaClassicCommandTransport;
@@ -14,7 +15,9 @@ import io.jenkins.plugins.remotingkafka.enums.SecurityProtocol;
 import io.jenkins.plugins.remotingkafka.exception.RemotingKafkaConfigurationException;
 import io.jenkins.plugins.remotingkafka.exception.RemotingKafkaException;
 import jenkins.model.JenkinsLocationConfiguration;
+import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -37,9 +40,17 @@ public class KafkaComputerLauncher extends ComputerLauncher {
     @CheckForNull
     private transient volatile ExecutorService launcherExecutorService;
 
-    @DataBoundConstructor
-    public KafkaComputerLauncher() {
+    private String kafkaUsername;
 
+    private String sslTruststoreLocation;
+
+    private String sslKeystoreLocation;
+
+    @DataBoundConstructor
+    public KafkaComputerLauncher(String kafkaUsername, String sslTruststoreLocation, String sslKeystoreLocation) {
+        this.kafkaUsername = kafkaUsername;
+        this.sslTruststoreLocation = sslTruststoreLocation;
+        this.sslKeystoreLocation = sslKeystoreLocation;
     }
 
     @Override
@@ -142,6 +153,19 @@ public class KafkaComputerLauncher extends ComputerLauncher {
         return GlobalKafkaConfiguration.get().getBrokerURL();
     }
 
+    public String getKafkaUsername() {
+        return kafkaUsername;
+    }
+
+    public String getSslTruststoreLocation() {
+        return sslTruststoreLocation;
+    }
+
+    public String getSslKeystoreLocation() {
+        return sslKeystoreLocation;
+    }
+
+
     private URL retrieveJenkinsURL() throws RemotingKafkaConfigurationException {
         JenkinsLocationConfiguration loc = null;
         try {
@@ -194,7 +218,7 @@ public class KafkaComputerLauncher extends ComputerLauncher {
                 .withConsumerTopic(topic)
                 .withProducerPartition(KafkaConfigs.MASTER_AGENT_SECRET_PARTITION)
                 .withConsumerPartition(KafkaConfigs.AGENT_MASTER_SECRET_PARTITION);
-        KafkaSecretManager secretManager = new KafkaSecretManager(agentName, settings, 30000, listener);
+        KafkaSecretManager secretManager = new KafkaSecretManager(agentName, settings, 60000, listener);
         return secretManager.waitForValidAgent();
     }
 
@@ -202,6 +226,27 @@ public class KafkaComputerLauncher extends ComputerLauncher {
     public static class DescriptorImpl extends Descriptor<ComputerLauncher> {
         public String getDisplayName() {
             return Messages.KafkaComputerLauncher_DescriptorDisplayName();
+        }
+
+        public FormValidation doCheckKafkaUsername(@QueryParameter("kafkaUsername") String kafkaUsername) {
+            if (StringUtils.isBlank(kafkaUsername)) {
+                return FormValidation.error(Messages.GlobalKafkaConfiguration_KafkaSecurityWarning());
+            }
+            return FormValidation.ok();
+        }
+
+        public FormValidation doCheckSslTruststoreLocation(@QueryParameter("sslTruststoreLocation") String sslTruststoreLocation) {
+            if (StringUtils.isBlank(sslTruststoreLocation)) {
+                return FormValidation.error(Messages.GlobalKafkaConfiguration_KafkaSecurityWarning());
+            }
+            return FormValidation.ok();
+        }
+
+        public FormValidation doCheckSslKeystoreLocation(@QueryParameter("sslKeystoreLocation") String sslKeystoreLocation) {
+            if (StringUtils.isBlank(sslKeystoreLocation)) {
+                return FormValidation.error(Messages.GlobalKafkaConfiguration_KafkaSecurityWarning());
+            }
+            return FormValidation.ok();
         }
     }
 }
