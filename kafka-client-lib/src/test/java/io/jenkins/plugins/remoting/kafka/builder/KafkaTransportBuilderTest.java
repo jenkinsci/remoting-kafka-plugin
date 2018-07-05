@@ -7,7 +7,7 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
-public class KafkaClassicCommandTransportBuilderTest {
+public class KafkaTransportBuilderTest {
     @Test
     public void testWithCapability() {
         KafkaTransportBuilder builder = new KafkaTransportBuilder()

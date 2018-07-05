@@ -107,7 +107,9 @@ public class SecurityPropertiesBuilder {
         put(props, KafkaConfigs.SSL_TRUSTSTORE_PASSWORD, sslTruststorePassword);
         put(props, KafkaConfigs.SSL_KEY_PASSWORD, sslKeyPassword);
         put(props, KafkaConfigs.SASL_JAAS_CONFIG, saslJassConfig);
-        put(props, KafkaConfigs.SECURITY_PROTOCOL, securityProtocol.toString());
+        if (securityProtocol != null) {
+            put(props, KafkaConfigs.SECURITY_PROTOCOL, securityProtocol.toString());
+        }
         put(props, KafkaConfigs.SASL_MECHANISM, saslMechanism);
         return props;
     }
