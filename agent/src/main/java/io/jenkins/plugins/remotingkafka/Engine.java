@@ -168,7 +168,7 @@ public class Engine extends Thread {
                 .withSSLKeystoreLocation("../../certs/docker.kafka.server.keystore.jks")
                 .withSSLKeystorePassword("kafkadocker")
                 .withSSLKeyPassword("kafkadocker")
-                .withSASLJassConfig("user", "password")
+                .withSASLJassConfig("jenkins", "jenkins-secret")
                 .withSecurityProtocol(SecurityProtocol.SASL_SSL)
                 .withSASLMechanism("PLAIN")
                 .build();

@@ -94,7 +94,7 @@ public class SecurityPropertiesBuilder {
     }
 
     private void put(Properties props, Object key, Object value) {
-        if (key != null) {
+        if (value != null) {
             props.put(key, value);
         }
     }

@@ -9,36 +9,36 @@ services:
         volumes:
             - './certs/docker.kafka.server.keystore.jks:/kafka.keystore.jks:ro'
             - './certs/docker.kafka.server.truststore.jks:/kafka.truststore.jks:ro'
-    
-    zookeeper:
-        image: 'bitnami/zookeeper:latest'
-        ports:
-            - '2181:2181'
-        environment:
-            - ZOO_ENABLE_AUTH=yes
-            - ZOO_SERVER_USERS=kafka
-            - ZOO_SERVER_PASSWORDS=kafka_password
-    
+
     kafka:
-        image: 'bitnami/kafka:latest'
+        image: wurstmeister/kafka:latest
         ports:
-            - '9092:9092'
+            - "9092:9092"
         links:
             - zookeeper
-        environment:
-            - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
-            - KAFKA_LISTENERS=SASL_SSL://:9092
-            - KAFKA_ADVERTISED_LISTENERS=SASL_SSL://${DOCKERHOST}:9092
-            - KAFKA_ZOOKEEPER_USER=kafka
-            - KAFKA_ZOOKEEPER_PASSWORD=kafka_password
-            - KAFKA_INTER_BROKER_USER=interuser
-            - KAFKA_INTER_BROKER_PASSWORD=interpassword
-            - KAFKA_BROKER_USER=user
-            - KAFKA_BROKER_PASSWORD=password
-            - KAFKA_CERTIFICATE_PASSWORD=kafkadocker
-            - KAFKA_OPTS=-Djava.security.auth.login.config=/opt/bitnami/kafka/conf/kafka_jaas.conf
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
-            - './certs/docker.kafka.server.keystore.jks:/opt/bitnami/kafka/conf/certs/kafka.keystore.jks:ro'
-            - './certs/docker.kafka.server.truststore.jks:/opt/bitnami/kafka/conf/certs/kafka.truststore.jks:ro'
-            
+            - ./certs/docker.kafka.server.keystore.jks:/kafka.keystore.jks:ro
+            - ./certs/docker.kafka.server.truststore.jks:/kafka.truststore.jks:ro
+            - ./kafka_server_jaas.conf:/kafka_server_jaas.conf
+        environment:
+            # Zookeeper config
+            KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+            # SSL config env
+            KAFKA_SSL_KEYSTORE_LOCATION: /kafka.keystore.jks
+            KAFKA_SSL_KEYSTORE_PASSWORD: kafkadocker
+            KAFKA_SSL_KEY_PASSWORD: kafkadocker
+            KAFKA_SSL_TRUSTSTORE_LOCATION: /kafka.truststore.jks
+            KAFKA_SSL_TRUSTSTORE_PASSWORD: kafkadocker
+            # SASL config
+            KAFKA_LISTENERS: SASL_SSL://:9092
+            KAFKA_ADVERTISED_LISTENERS: SASL_SSL://${DOCKERHOST}:9092
+            KAFKA_SECURITY_INTER_BROKER_PROTOCOL: SASL_SSL
+            KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
+            KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
+            KAFKA_OPTS: -Djava.security.auth.login.config=/kafka_server_jaas.conf
+
+    zookeeper:
+        image: wurstmeister/zookeeper:latest
+        ports:
+            - "2181:2181"
