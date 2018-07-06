@@ -1,19 +1,34 @@
 package io.jenkins.plugins.remotingkafka;
 
+import com.cloudbees.plugins.credentials.CredentialsMatchers;
+import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
+import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
+import com.cloudbees.plugins.credentials.domains.SchemeRequirement;
+import com.cloudbees.plugins.credentials.matchers.IdMatcher;
 import hudson.Extension;
+import hudson.model.Item;
+import hudson.security.ACL;
 import hudson.util.FormValidation;
+import hudson.util.ListBoxModel;
 import jenkins.model.GlobalConfiguration;
+import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
+import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Collections;
+import java.util.List;
 
 @Extension
 public class GlobalKafkaConfiguration extends GlobalConfiguration {
+    public static final SchemeRequirement KAFKA_SCHEME = new SchemeRequirement("kafka");
+    private String credentialsId;
     private String brokerURL;
     private String zookeeperURL;
     private String username;
@@ -66,6 +81,10 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
 
     public String getSslKeyPassword() {
         return sslKeyPassword;
+    }
+
+    public String getCredentialsId() {
+        return credentialsId;
     }
 
     public FormValidation doCheckBrokerURL(@QueryParameter("brokerURL") final String brokerURL) {
@@ -161,8 +180,9 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
     public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
         this.brokerURL = formData.getString("brokerURL");
         this.zookeeperURL = formData.getString("zookeeperURL");
-        this.username = formData.getString("username");
-        this.password = formData.getString("password");
+        StandardUsernamePasswordCredentials credential = getCredential();
+        this.username = credential.getUsername();
+        this.password = credential.getPassword().getPlainText();
         this.sslTruststoreLocation = formData.getString("sslTruststoreLocation");
         this.sslTruststorePassword = formData.getString("sslTruststorePassword");
         this.sslKeystoreLocation = formData.getString("sslKeystoreLocation");
@@ -174,5 +194,69 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
 
     private void testConnection(String host, int port) throws IOException {
         new Socket(host, port);
+    }
+
+    private StandardUsernamePasswordCredentials getCredential() {
+        StandardUsernamePasswordCredentials credential = null;
+
+        List<StandardUsernamePasswordCredentials> credentials = CredentialsProvider.lookupCredentials(
+                StandardUsernamePasswordCredentials.class, Jenkins.get(), ACL.SYSTEM, Collections.emptyList());
+
+        IdMatcher matcher = new IdMatcher(credentialsId);
+        for (StandardUsernamePasswordCredentials c : credentials) {
+            if (matcher.matches(c)) {
+                credential = c;
+            }
+        }
+
+        return credential;
+    }
+
+    public ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item item, @QueryParameter String credentialsId) {
+        StandardListBoxModel result = new StandardListBoxModel();
+        if (item == null) {
+            if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
+                return result.includeCurrentValue(credentialsId);
+            }
+        } else {
+            if (!item.hasPermission(Item.EXTENDED_READ) && !item.hasPermission(CredentialsProvider.USE_ITEM)) {
+                return result.includeCurrentValue(credentialsId);
+            }
+        }
+        this.credentialsId = credentialsId;
+        return result
+                .includeMatchingAs(
+                        ACL.SYSTEM,
+                        Jenkins.get(),
+                        StandardUsernamePasswordCredentials.class,
+                        Collections.singletonList(KAFKA_SCHEME),
+                        CredentialsMatchers.always()
+                )
+                .includeCurrentValue(credentialsId);
+    }
+
+    public FormValidation doCheckCredentialsId(@AncestorInPath Item item, @QueryParameter String value) {
+        if (item == null) {
+            if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
+                return FormValidation.ok();
+            }
+        } else {
+            if (!item.hasPermission(Item.EXTENDED_READ) && !item.hasPermission(CredentialsProvider.USE_ITEM)) {
+                return FormValidation.ok();
+            }
+        }
+        if (value.startsWith("${") && value.endsWith("}")) {
+            return FormValidation.warning("Cannot validate expression based credentials");
+        }
+        if (CredentialsProvider.listCredentials(
+                StandardUsernamePasswordCredentials.class,
+                Jenkins.get(),
+                ACL.SYSTEM,
+                Collections.singletonList(KAFKA_SCHEME),
+                CredentialsMatchers.withId(value)
+        ).isEmpty()) {
+            return FormValidation.error("Cannot find currently selected credentials");
+        }
+        return FormValidation.ok();
     }
 }
