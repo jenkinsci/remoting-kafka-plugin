@@ -5,7 +5,7 @@ import io.jenkins.plugins.remotingkafka.builder.KafkaPasswordManagerBuilder;
 import io.jenkins.plugins.remotingkafka.builder.KafkaTransportBuilder;
 import io.jenkins.plugins.remotingkafka.builder.SecurityPropertiesBuilder;
 import io.jenkins.plugins.remotingkafka.enums.SecurityProtocol;
-import io.jenkins.plugins.remotingkafka.exception.RemotingKafkaConfigurationException;
+import io.jenkins.plugins.remotingkafka.exception.RemotingKafkaException;
 import io.jenkins.plugins.remotingkafka.security.KafkaPasswordManager;
 import org.jenkinsci.remoting.engine.WorkDirManager;
 import org.kohsuke.args4j.CmdLineException;
@@ -30,7 +30,7 @@ public class Agent {
         this.options = options;
     }
 
-    public static void main(String... args) throws InterruptedException, IOException, RemotingKafkaConfigurationException {
+    public static void main(String... args) throws InterruptedException, IOException, RemotingKafkaException {
         Options options = new Options();
         Agent agent = new Agent(options);
 

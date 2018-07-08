@@ -2,7 +2,9 @@ package io.jenkins.plugins.remotingkafka.builder;
 
 import io.jenkins.plugins.remotingkafka.KafkaConfigs;
 import io.jenkins.plugins.remotingkafka.enums.SecurityProtocol;
+import io.jenkins.plugins.remotingkafka.exception.RemotingKafkaSecurityException;
 
+import javax.annotation.CheckForNull;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -15,41 +17,49 @@ public class SecurityPropertiesBuilder {
     /**
      * The location of the trust store file.
      */
+    @CheckForNull
     private String sslTruststoreLocation;
 
     /**
      * The password for the trust store file.
      */
+    @CheckForNull
     private String sslTruststorePassword;
 
     /**
      * The location of the key store file.
      */
+    @CheckForNull
     private String sslKeystoreLocation;
 
     /**
      * The store password for the key store file.
      */
+    @CheckForNull
     private String sslKeystorePassword;
 
     /**
      * The password of the private key in the key store file.
      */
+    @CheckForNull
     private String sslKeyPassword;
 
     /**
      * JAAS login context parameters for SASL connections in the format used by JAAS configuration files.
      */
+    @CheckForNull
     private String saslJassConfig;
 
     /**
      * Protocol used to communicate with brokers.
      */
+    @CheckForNull
     private SecurityProtocol securityProtocol;
 
     /**
      * SASL mechanism used for client connections.
      */
+    @CheckForNull
     private String saslMechanism;
 
     public SecurityPropertiesBuilder withSSLTruststoreLocation(String location) {
@@ -93,13 +103,15 @@ public class SecurityPropertiesBuilder {
         return this;
     }
 
-    private void put(Properties props, Object key, Object value) {
+    private void put(Properties props, String key, Object value) throws RemotingKafkaSecurityException {
         if (value != null) {
             props.put(key, value);
+        } else {
+            throw new RemotingKafkaSecurityException("Please provide " + key);
         }
     }
 
-    public Properties build() {
+    public Properties build() throws RemotingKafkaSecurityException {
         Properties props = new Properties();
         put(props, KafkaConfigs.SSL_KEYSTORE_LOCATION, sslKeystoreLocation);
         put(props, KafkaConfigs.SSL_KEYSTORE_PASSWORD, sslKeystorePassword);

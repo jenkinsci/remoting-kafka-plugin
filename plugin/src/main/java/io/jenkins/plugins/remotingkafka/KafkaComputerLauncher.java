@@ -193,7 +193,7 @@ public class KafkaComputerLauncher extends ComputerLauncher {
      * @throws RemotingKafkaConfigurationException
      */
     private boolean isValidAgent(@Nonnull String agentName, TaskListener listener)
-            throws RemotingKafkaConfigurationException, InterruptedException {
+            throws RemotingKafkaException, InterruptedException {
         String kafkaURL = getKafkaURL();
         URL jenkinsURL = retrieveJenkinsURL();
         String topic = KafkaConfigs.getConnectionTopic(agentName, jenkinsURL);
