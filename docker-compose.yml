@@ -20,7 +20,7 @@ services:
             - /var/run/docker.sock:/var/run/docker.sock
             - ./certs/docker.kafka.server.keystore.jks:/kafka.keystore.jks:ro
             - ./certs/docker.kafka.server.truststore.jks:/kafka.truststore.jks:ro
-            - ./kafka_server_jaas.conf:/kafka_server_jaas.conf
+            - ./docker/kafka_server_jaas.conf:/kafka_server_jaas.conf
         environment:
             # Zookeeper config
             KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181

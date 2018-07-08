@@ -20,6 +20,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 
 import java.util.ArrayList;
 import java.util.Properties;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class KafkaUtils {
@@ -49,9 +50,18 @@ public class KafkaUtils {
                 .withValueDeserializer(ByteArrayDeserializer.class)
                 .withSecurityProps(securityProps)
                 .build();
-        Thread.currentThread().setContextClassLoader(
-                org.apache.kafka.clients.consumer.KafkaConsumer.class.getClassLoader());
-        KafkaConsumer<String, byte[]> consumer = new KafkaConsumer<>(consumerProps);
+        KafkaConsumer<String, byte[]> consumer = null;
+        ClassLoader cl = Thread.currentThread().getContextClassLoader();
+        try {
+            // Kafka uses reflection for loading authentication settings, use its classloader.
+            Thread.currentThread().setContextClassLoader(
+                    org.apache.kafka.clients.consumer.KafkaConsumer.class.getClassLoader());
+            consumer = new KafkaConsumer<>(consumerProps);
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Exception when creating a Kafka consumer", e);
+        } finally {
+            Thread.currentThread().setContextClassLoader(cl);
+        }
         return consumer;
     }
 

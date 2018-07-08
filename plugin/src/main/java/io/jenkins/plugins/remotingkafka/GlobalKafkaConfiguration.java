@@ -18,6 +18,7 @@ import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.interceptor.RequirePOST;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
@@ -87,6 +88,7 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
         return credentialsId;
     }
 
+    @RequirePOST
     public FormValidation doCheckBrokerURL(@QueryParameter("brokerURL") final String brokerURL) {
         if (StringUtils.isBlank(brokerURL)) {
             return FormValidation.error(Messages.GlobalKafkaConfiguration_KafkaConnectionURLWarning());
@@ -94,6 +96,7 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
         return FormValidation.ok();
     }
 
+    @RequirePOST
     public FormValidation doCheckZookeeperURL(@QueryParameter("zookeeperURL") String zookeeperURL) {
         if (StringUtils.isBlank(zookeeperURL)) {
             return FormValidation.error(Messages.GlobalKafkaConfiguration_ZookeeperURLWarning());
@@ -101,20 +104,7 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
         return FormValidation.ok();
     }
 
-    public FormValidation doCheckUsername(@QueryParameter("username") String username) {
-        if (StringUtils.isBlank(username)) {
-            return FormValidation.error(Messages.GlobalKafkaConfiguration_KafkaSecurityWarning());
-        }
-        return FormValidation.ok();
-    }
-
-    public FormValidation doCheckPassword(@QueryParameter("password") String password) {
-        if (StringUtils.isBlank(password)) {
-            return FormValidation.error(Messages.GlobalKafkaConfiguration_KafkaSecurityWarning());
-        }
-        return FormValidation.ok();
-    }
-
+    @RequirePOST
     public FormValidation doCheckSslTruststoreLocation(@QueryParameter("sslTruststoreLocation") String sslTruststoreLocation) {
         if (StringUtils.isBlank(sslTruststoreLocation)) {
             return FormValidation.error(Messages.GlobalKafkaConfiguration_KafkaSecurityWarning());
@@ -122,6 +112,7 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
         return FormValidation.ok();
     }
 
+    @RequirePOST
     public FormValidation doCheckSslTruststorePassword(@QueryParameter("sslTruststorePassword") String sslTruststorePassword) {
         if (StringUtils.isBlank(sslTruststorePassword)) {
             return FormValidation.error(Messages.GlobalKafkaConfiguration_KafkaSecurityWarning());
@@ -129,6 +120,7 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
         return FormValidation.ok();
     }
 
+    @RequirePOST
     public FormValidation doCheckSslKeystoreLocation(@QueryParameter("sslKeystoreLocation") String sslKeystoreLocation) {
         if (StringUtils.isBlank(sslKeystoreLocation)) {
             return FormValidation.error(Messages.GlobalKafkaConfiguration_KafkaSecurityWarning());
@@ -136,6 +128,7 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
         return FormValidation.ok();
     }
 
+    @RequirePOST
     public FormValidation doCheckSslKeystorePassword(@QueryParameter("sslKeystorePassword") String sslKeystorePassword) {
         if (StringUtils.isBlank(sslKeystorePassword)) {
             return FormValidation.error(Messages.GlobalKafkaConfiguration_KafkaSecurityWarning());
@@ -143,6 +136,7 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
         return FormValidation.ok();
     }
 
+    @RequirePOST
     public FormValidation doCheckSslKeyPassword(@QueryParameter("sslKeyPassword") String sslKeyPassword) {
         if (StringUtils.isBlank(sslKeyPassword)) {
             return FormValidation.error(Messages.GlobalKafkaConfiguration_KafkaSecurityWarning());
@@ -218,10 +212,6 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
             if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
                 return result.includeCurrentValue(credentialsId);
             }
-        } else {
-            if (!item.hasPermission(Item.EXTENDED_READ) && !item.hasPermission(CredentialsProvider.USE_ITEM)) {
-                return result.includeCurrentValue(credentialsId);
-            }
         }
         this.credentialsId = credentialsId;
         return result
@@ -235,13 +225,10 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
                 .includeCurrentValue(credentialsId);
     }
 
+    @RequirePOST
     public FormValidation doCheckCredentialsId(@AncestorInPath Item item, @QueryParameter String value) {
         if (item == null) {
             if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
-                return FormValidation.ok();
-            }
-        } else {
-            if (!item.hasPermission(Item.EXTENDED_READ) && !item.hasPermission(CredentialsProvider.USE_ITEM)) {
                 return FormValidation.ok();
             }
         }

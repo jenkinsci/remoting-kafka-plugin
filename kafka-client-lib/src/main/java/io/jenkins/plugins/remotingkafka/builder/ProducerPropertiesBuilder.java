@@ -38,6 +38,7 @@ public class ProducerPropertiesBuilder {
     @CheckForNull
     private Class valueSerializer;
 
+    @CheckForNull
     private Properties securityProps;
 
     public ProducerPropertiesBuilder withBoostrapServers(String boostrapServers) {

@@ -4,6 +4,7 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 
 import java.util.Properties;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class KafkaProducerClient {
@@ -30,9 +31,17 @@ public class KafkaProducerClient {
         if (byteProducer == null) {
             synchronized (KafkaProducerClient.class) {
                 if (byteProducer == null) {
-                    Thread.currentThread().setContextClassLoader(
-                            org.apache.kafka.clients.producer.KafkaProducer.class.getClassLoader());
-                    byteProducer = new KafkaProducer<>(producerProps);
+                    ClassLoader cl = Thread.currentThread().getContextClassLoader();
+                    try {
+                        // Kafka uses reflection for loading authentication settings, use its classloader.
+                        Thread.currentThread().setContextClassLoader(
+                                org.apache.kafka.clients.producer.KafkaProducer.class.getClassLoader());
+                        byteProducer = new KafkaProducer<>(producerProps);
+                    } catch (Exception e) {
+                        LOGGER.log(Level.SEVERE, "Exception when creating a Kafka producer", e);
+                    } finally {
+                        Thread.currentThread().setContextClassLoader(cl);
+                    }
                 }
             }
         }

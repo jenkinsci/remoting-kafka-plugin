@@ -14,15 +14,9 @@
         <f:validateButton
                 title="${%Test Broker Connection}" progress="${%Testing...}"
                 method="testBrokerConnection" with="brokerURL" />
-        <!--<f:entry field="username" title="${%Username}">-->
-            <!--<f:textbox/>-->
-        <!--</f:entry>-->
         <f:entry title="${%Credentials}" field="credentialsId">
             <c:select/>
         </f:entry>
-        <!--<f:entry field="password" title="${%Password}">-->
-            <!--<f:password/>-->
-        <!--</f:entry>-->
         <f:entry field="sslTruststoreLocation" title="${%SSL Truststore Location}">
             <f:textbox/>
         </f:entry>

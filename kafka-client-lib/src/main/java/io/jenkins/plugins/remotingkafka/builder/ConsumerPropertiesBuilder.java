@@ -48,6 +48,7 @@ public class ConsumerPropertiesBuilder {
     @CheckForNull
     private Class valueDeserializer;
 
+    @CheckForNull
     private Properties securityProps;
 
     public ConsumerPropertiesBuilder() {
