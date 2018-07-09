@@ -1,4 +1,5 @@
 #!/bin/bash
+# Bash script to setup SSL certs
 
 PASSWORD="kafkadocker"
 SERVER_KEYSTORE_JKS="docker.kafka.server.keystore.jks"

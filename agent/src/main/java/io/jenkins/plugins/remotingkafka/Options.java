@@ -27,4 +27,7 @@ public class Options {
 
     @Option(name = "-sslKeystoreLocation", usage = "Username to login to kafka broker")
     public String sslKeystoreLocation;
+
+    @Option(name = "-noauth", usage = "Enable to connect agent to master without Kafka authorization")
+    public boolean noauth;
 }

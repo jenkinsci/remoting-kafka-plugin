@@ -57,46 +57,49 @@ public class Agent {
                 System.exit(-1);
             }
         }
-
-        if (options.secret == null) {
-            LOGGER.info("Please provide a secret");
-            System.exit(-1);
+        Properties securityProps = null;
+        KafkaPasswordManager passwordManager = null;
+        if (!options.noauth) {
+            if (options.secret == null) {
+                LOGGER.info("Please provide a secret");
+                System.exit(-1);
+            }
+            if (options.kafkaUsername == null) {
+                LOGGER.info("Please provide Kafka username");
+                System.exit(-1);
+            }
+            if (options.sslKeystoreLocation == null) {
+                LOGGER.info("Please provide SSL keystore location");
+                System.exit(-1);
+            }
+            if (options.sslTruststoreLocation == null) {
+                LOGGER.info("Please provide SSL truststore location");
+                System.exit(-1);
+            }
+            KafkaPasswordManagerBuilder passwordManagerBuilder = new KafkaPasswordManagerBuilder();
+            Console cons = System.console();
+            System.out.print("Kafka password: ");
+            passwordManagerBuilder.withKafkaPassword(String.valueOf(cons.readPassword()));
+            System.out.print("SSL truststore password: ");
+            passwordManagerBuilder.withSSLTruststorePassword(String.valueOf(cons.readPassword()));
+            System.out.print("SSL keystore password: ");
+            passwordManagerBuilder.withSSLKeystorePassword(String.valueOf(cons.readPassword()));
+            System.out.print("SSL key password: ");
+            passwordManagerBuilder.withSSLKeyPassword(String.valueOf(cons.readPassword()));
+            passwordManager = passwordManagerBuilder.build();
+            securityProps = new SecurityPropertiesBuilder()
+                    .withSSLTruststoreLocation(options.sslTruststoreLocation)
+                    .withSSLTruststorePassword(passwordManager.getSslTruststorePassword())
+                    .withSSLKeystoreLocation(options.sslKeystoreLocation)
+                    .withSSLKeystorePassword(passwordManager.getSslKeystorePassword())
+                    .withSSLKeyPassword(passwordManager.getSslKeyPassword())
+                    .withSASLJassConfig(options.kafkaUsername, passwordManager.getKafkaPassword())
+                    .withSecurityProtocol(SecurityProtocol.SASL_SSL)
+                    .withSASLMechanism("PLAIN")
+                    .build();
         }
-        if (options.kafkaUsername == null) {
-            LOGGER.info("Please provide Kafka username");
-            System.exit(-1);
-        }
-        if (options.sslKeystoreLocation == null) {
-            LOGGER.info("Please provide SSL keystore location");
-            System.exit(-1);
-        }
-        if (options.sslTruststoreLocation == null) {
-            LOGGER.info("Please provide SSL truststore location");
-            System.exit(-1);
-        }
-        KafkaPasswordManagerBuilder passwordManagerBuilder = new KafkaPasswordManagerBuilder();
-        Console cons = System.console();
-        System.out.print("Kafka password: ");
-        passwordManagerBuilder.withKafkaPassword(String.valueOf(cons.readPassword()));
-        System.out.print("SSL truststore password: ");
-        passwordManagerBuilder.withSSLTruststorePassword(String.valueOf(cons.readPassword()));
-        System.out.print("SSL keystore password: ");
-        passwordManagerBuilder.withSSLKeystorePassword(String.valueOf(cons.readPassword()));
-        System.out.print("SSL key password: ");
-        passwordManagerBuilder.withSSLKeyPassword(String.valueOf(cons.readPassword()));
-        KafkaPasswordManager passwordManager = passwordManagerBuilder.build();
         URL masterURL = new URL(options.master);
         String topic = KafkaConfigs.getConnectionTopic(options.name, masterURL);
-        Properties securityProps = new SecurityPropertiesBuilder()
-                .withSSLTruststoreLocation(options.sslTruststoreLocation)
-                .withSSLTruststorePassword(passwordManager.getSslTruststorePassword())
-                .withSSLKeystoreLocation(options.sslKeystoreLocation)
-                .withSSLKeystorePassword(passwordManager.getSslKeystorePassword())
-                .withSSLKeyPassword(passwordManager.getSslKeyPassword())
-                .withSASLJassConfig(options.kafkaUsername, passwordManager.getKafkaPassword())
-                .withSecurityProtocol(SecurityProtocol.SASL_SSL)
-                .withSASLMechanism("PLAIN")
-                .build();
         KafkaTransportBuilder listenerSettings = new KafkaTransportBuilder()
                 .withProducer(KafkaUtils.createByteProducer(options.kafkaURL, securityProps))
                 .withConsumer(KafkaUtils.createByteConsumer(options.kafkaURL,

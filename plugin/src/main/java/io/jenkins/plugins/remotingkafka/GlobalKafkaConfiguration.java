@@ -18,7 +18,6 @@ import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
-import org.kohsuke.stapler.interceptor.RequirePOST;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
@@ -29,16 +28,14 @@ import java.util.List;
 @Extension
 public class GlobalKafkaConfiguration extends GlobalConfiguration {
     public static final SchemeRequirement KAFKA_SCHEME = new SchemeRequirement("kafka");
-    private String credentialsId;
+
     private String brokerURL;
     private String zookeeperURL;
-    private String username;
-    private String password;
-    private String sslTruststoreLocation;
-    private String sslTruststorePassword;
-    private String sslKeystoreLocation;
-    private String sslKeystorePassword;
-    private String sslKeyPassword;
+    private boolean enableSSL;
+    private String kafkaCredentialsId;
+    private String sslTruststoreCredentialsId;
+    private String sslKeystoreCredentialsId;
+    private String sslKeyCredentialsId;
 
     public GlobalKafkaConfiguration() {
         load();
@@ -56,39 +53,54 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
         return zookeeperURL;
     }
 
-    public String getUsername() {
-        return username;
+    public boolean getEnableSSL() {
+        return enableSSL;
     }
 
-    public String getPassword() {
-        return password;
+    public String getKafkaCredentialsId() {
+        return kafkaCredentialsId;
     }
 
-    public String getSslTruststoreLocation() {
-        return sslTruststoreLocation;
+    public String getSslTruststoreCredentialsId() {
+        return sslTruststoreCredentialsId;
     }
 
-    public String getSslTruststorePassword() {
-        return sslTruststorePassword;
+    public String getSslKeystoreCredentialsId() {
+        return sslKeystoreCredentialsId;
     }
 
-    public String getSslKeystoreLocation() {
-        return sslKeystoreLocation;
+    public String getSslKeyCredentialsId() {
+        return sslKeyCredentialsId;
     }
 
-    public String getSslKeystorePassword() {
-        return sslKeystorePassword;
+    public String getKafkaUsername() {
+        return getCredential(kafkaCredentialsId).getUsername();
     }
 
-    public String getSslKeyPassword() {
-        return sslKeyPassword;
+    public String getKafkaPassword() {
+        return getCredential(kafkaCredentialsId).getPassword().getPlainText();
     }
 
-    public String getCredentialsId() {
-        return credentialsId;
+    public String getSSLTruststoreLocation() {
+        return getCredential(sslTruststoreCredentialsId).getUsername();
     }
 
-    @RequirePOST
+    public String getSSLTruststorePassword() {
+        return getCredential(sslTruststoreCredentialsId).getPassword().getPlainText();
+    }
+
+    public String getSSLKeystoreLocation() {
+        return getCredential(sslKeystoreCredentialsId).getUsername();
+    }
+
+    public String getSSLKeystorePassword() {
+        return getCredential(sslKeystoreCredentialsId).getPassword().getPlainText();
+    }
+
+    public String getSSLKeyPassword() {
+        return getCredential(sslKeyCredentialsId).getPassword().getPlainText();
+    }
+
     public FormValidation doCheckBrokerURL(@QueryParameter("brokerURL") final String brokerURL) {
         if (StringUtils.isBlank(brokerURL)) {
             return FormValidation.error(Messages.GlobalKafkaConfiguration_KafkaConnectionURLWarning());
@@ -96,50 +108,9 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
         return FormValidation.ok();
     }
 
-    @RequirePOST
     public FormValidation doCheckZookeeperURL(@QueryParameter("zookeeperURL") String zookeeperURL) {
         if (StringUtils.isBlank(zookeeperURL)) {
             return FormValidation.error(Messages.GlobalKafkaConfiguration_ZookeeperURLWarning());
-        }
-        return FormValidation.ok();
-    }
-
-    @RequirePOST
-    public FormValidation doCheckSslTruststoreLocation(@QueryParameter("sslTruststoreLocation") String sslTruststoreLocation) {
-        if (StringUtils.isBlank(sslTruststoreLocation)) {
-            return FormValidation.error(Messages.GlobalKafkaConfiguration_KafkaSecurityWarning());
-        }
-        return FormValidation.ok();
-    }
-
-    @RequirePOST
-    public FormValidation doCheckSslTruststorePassword(@QueryParameter("sslTruststorePassword") String sslTruststorePassword) {
-        if (StringUtils.isBlank(sslTruststorePassword)) {
-            return FormValidation.error(Messages.GlobalKafkaConfiguration_KafkaSecurityWarning());
-        }
-        return FormValidation.ok();
-    }
-
-    @RequirePOST
-    public FormValidation doCheckSslKeystoreLocation(@QueryParameter("sslKeystoreLocation") String sslKeystoreLocation) {
-        if (StringUtils.isBlank(sslKeystoreLocation)) {
-            return FormValidation.error(Messages.GlobalKafkaConfiguration_KafkaSecurityWarning());
-        }
-        return FormValidation.ok();
-    }
-
-    @RequirePOST
-    public FormValidation doCheckSslKeystorePassword(@QueryParameter("sslKeystorePassword") String sslKeystorePassword) {
-        if (StringUtils.isBlank(sslKeystorePassword)) {
-            return FormValidation.error(Messages.GlobalKafkaConfiguration_KafkaSecurityWarning());
-        }
-        return FormValidation.ok();
-    }
-
-    @RequirePOST
-    public FormValidation doCheckSslKeyPassword(@QueryParameter("sslKeyPassword") String sslKeyPassword) {
-        if (StringUtils.isBlank(sslKeyPassword)) {
-            return FormValidation.error(Messages.GlobalKafkaConfiguration_KafkaSecurityWarning());
         }
         return FormValidation.ok();
     }
@@ -174,14 +145,7 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
     public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
         this.brokerURL = formData.getString("brokerURL");
         this.zookeeperURL = formData.getString("zookeeperURL");
-        StandardUsernamePasswordCredentials credential = getCredential();
-        this.username = credential.getUsername();
-        this.password = credential.getPassword().getPlainText();
-        this.sslTruststoreLocation = formData.getString("sslTruststoreLocation");
-        this.sslTruststorePassword = formData.getString("sslTruststorePassword");
-        this.sslKeystoreLocation = formData.getString("sslKeystoreLocation");
-        this.sslKeystorePassword = formData.getString("sslKeystorePassword");
-        this.sslKeyPassword = formData.getString("sslKeyPassword");
+        this.enableSSL = Boolean.valueOf(formData.getString("enableSSL"));
         save();
         return super.configure(req, formData);
     }
@@ -190,13 +154,13 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
         new Socket(host, port);
     }
 
-    private StandardUsernamePasswordCredentials getCredential() {
+    private StandardUsernamePasswordCredentials getCredential(String id) {
         StandardUsernamePasswordCredentials credential = null;
 
         List<StandardUsernamePasswordCredentials> credentials = CredentialsProvider.lookupCredentials(
                 StandardUsernamePasswordCredentials.class, Jenkins.get(), ACL.SYSTEM, Collections.emptyList());
 
-        IdMatcher matcher = new IdMatcher(credentialsId);
+        IdMatcher matcher = new IdMatcher(id);
         for (StandardUsernamePasswordCredentials c : credentials) {
             if (matcher.matches(c)) {
                 credential = c;
@@ -206,14 +170,13 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
         return credential;
     }
 
-    public ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item item, @QueryParameter String credentialsId) {
+    public ListBoxModel doFillKafkaCredentialsIdItems(@AncestorInPath Item item, @QueryParameter String credentialsId) {
         StandardListBoxModel result = new StandardListBoxModel();
         if (item == null) {
             if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
                 return result.includeCurrentValue(credentialsId);
             }
         }
-        this.credentialsId = credentialsId;
         return result
                 .includeMatchingAs(
                         ACL.SYSTEM,
@@ -225,8 +188,7 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
                 .includeCurrentValue(credentialsId);
     }
 
-    @RequirePOST
-    public FormValidation doCheckCredentialsId(@AncestorInPath Item item, @QueryParameter String value) {
+    public FormValidation doCheckKafkaCredentialsId(@AncestorInPath Item item, @QueryParameter String value) {
         if (item == null) {
             if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
                 return FormValidation.ok();
@@ -244,6 +206,127 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
         ).isEmpty()) {
             return FormValidation.error("Cannot find currently selected credentials");
         }
+        this.kafkaCredentialsId = value;
+        return FormValidation.ok();
+    }
+
+    public ListBoxModel doFillSslTruststoreCredentialsIdItems(@AncestorInPath Item item, @QueryParameter String credentialsId) {
+        StandardListBoxModel result = new StandardListBoxModel();
+        if (item == null) {
+            if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
+                return result.includeCurrentValue(credentialsId);
+            }
+        }
+        return result
+                .includeMatchingAs(
+                        ACL.SYSTEM,
+                        Jenkins.get(),
+                        StandardUsernamePasswordCredentials.class,
+                        Collections.singletonList(KAFKA_SCHEME),
+                        CredentialsMatchers.always()
+                )
+                .includeCurrentValue(credentialsId);
+    }
+
+    public FormValidation doCheckSslTruststoreCredentialsId(@AncestorInPath Item item, @QueryParameter String value) {
+        if (item == null) {
+            if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
+                return FormValidation.ok();
+            }
+        }
+        if (value.startsWith("${") && value.endsWith("}")) {
+            return FormValidation.warning("Cannot validate expression based credentials");
+        }
+        if (CredentialsProvider.listCredentials(
+                StandardUsernamePasswordCredentials.class,
+                Jenkins.get(),
+                ACL.SYSTEM,
+                Collections.singletonList(KAFKA_SCHEME),
+                CredentialsMatchers.withId(value)
+        ).isEmpty()) {
+            return FormValidation.error("Cannot find currently selected credentials");
+        }
+        this.sslTruststoreCredentialsId = value;
+        return FormValidation.ok();
+    }
+
+    public ListBoxModel doFillSslKeystoreCredentialsIdItems(@AncestorInPath Item item, @QueryParameter String credentialsId) {
+        StandardListBoxModel result = new StandardListBoxModel();
+        if (item == null) {
+            if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
+                return result.includeCurrentValue(credentialsId);
+            }
+        }
+        return result
+                .includeMatchingAs(
+                        ACL.SYSTEM,
+                        Jenkins.get(),
+                        StandardUsernamePasswordCredentials.class,
+                        Collections.singletonList(KAFKA_SCHEME),
+                        CredentialsMatchers.always()
+                )
+                .includeCurrentValue(credentialsId);
+    }
+
+    public FormValidation doCheckSslKeystoreCredentialsId(@AncestorInPath Item item, @QueryParameter String value) {
+        if (item == null) {
+            if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
+                return FormValidation.ok();
+            }
+        }
+        if (value.startsWith("${") && value.endsWith("}")) {
+            return FormValidation.warning("Cannot validate expression based credentials");
+        }
+        if (CredentialsProvider.listCredentials(
+                StandardUsernamePasswordCredentials.class,
+                Jenkins.get(),
+                ACL.SYSTEM,
+                Collections.singletonList(KAFKA_SCHEME),
+                CredentialsMatchers.withId(value)
+        ).isEmpty()) {
+            return FormValidation.error("Cannot find currently selected credentials");
+        }
+        this.sslKeystoreCredentialsId = value;
+        return FormValidation.ok();
+    }
+
+    public ListBoxModel doFillSslKeyCredentialsIdItems(@AncestorInPath Item item, @QueryParameter String credentialsId) {
+        StandardListBoxModel result = new StandardListBoxModel();
+        if (item == null) {
+            if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
+                return result.includeCurrentValue(credentialsId);
+            }
+        }
+        return result
+                .includeMatchingAs(
+                        ACL.SYSTEM,
+                        Jenkins.get(),
+                        StandardUsernamePasswordCredentials.class,
+                        Collections.singletonList(KAFKA_SCHEME),
+                        CredentialsMatchers.always()
+                )
+                .includeCurrentValue(credentialsId);
+    }
+
+    public FormValidation doCheckSslKeyCredentialsId(@AncestorInPath Item item, @QueryParameter String value) {
+        if (item == null) {
+            if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
+                return FormValidation.ok();
+            }
+        }
+        if (value.startsWith("${") && value.endsWith("}")) {
+            return FormValidation.warning("Cannot validate expression based credentials");
+        }
+        if (CredentialsProvider.listCredentials(
+                StandardUsernamePasswordCredentials.class,
+                Jenkins.get(),
+                ACL.SYSTEM,
+                Collections.singletonList(KAFKA_SCHEME),
+                CredentialsMatchers.withId(value)
+        ).isEmpty()) {
+            return FormValidation.error("Cannot find currently selected credentials");
+        }
+        this.sslKeyCredentialsId = value;
         return FormValidation.ok();
     }
 }

@@ -46,11 +46,15 @@ public class KafkaComputerLauncher extends ComputerLauncher {
 
     private String sslKeystoreLocation;
 
+    private boolean enableSSL;
+
     @DataBoundConstructor
-    public KafkaComputerLauncher(String kafkaUsername, String sslTruststoreLocation, String sslKeystoreLocation) {
+    public KafkaComputerLauncher(String kafkaUsername, String sslTruststoreLocation, String sslKeystoreLocation,
+                                 String enableSSL) {
         this.kafkaUsername = kafkaUsername;
         this.sslTruststoreLocation = sslTruststoreLocation;
         this.sslKeystoreLocation = sslKeystoreLocation;
+        this.enableSSL = Boolean.valueOf(enableSSL);
     }
 
     @Override
@@ -69,7 +73,8 @@ public class KafkaComputerLauncher extends ComputerLauncher {
             @Override
             public Boolean call() throws Exception {
                 String topic = KafkaConfigs.getConnectionTopic(computer.getName(), retrieveJenkinsURL());
-                KafkaUtils.createTopic(topic, GlobalKafkaConfiguration.get().getZookeeperURL(), 4, 1);
+                KafkaUtils.createTopic(topic, GlobalKafkaConfiguration.get().getZookeeperURL(),
+                        4, 1);
                 if (!isValidAgent(computer.getName(), listener)) {
                     return false;
                 }
@@ -119,16 +124,19 @@ public class KafkaComputerLauncher extends ComputerLauncher {
         String kafkaURL = getKafkaURL();
         String topic = KafkaConfigs.getConnectionTopic(nodeName, jenkinsURL);
         GlobalKafkaConfiguration kafkaConfig = GlobalKafkaConfiguration.get();
-        Properties securityProps = new SecurityPropertiesBuilder()
-                .withSSLTruststoreLocation(kafkaConfig.getSslTruststoreLocation())
-                .withSSLTruststorePassword(kafkaConfig.getSslTruststorePassword())
-                .withSSLKeystoreLocation(kafkaConfig.getSslKeystoreLocation())
-                .withSSLKeystorePassword(kafkaConfig.getSslKeystorePassword())
-                .withSSLKeyPassword(kafkaConfig.getSslKeyPassword())
-                .withSASLJassConfig(kafkaConfig.getUsername(), kafkaConfig.getPassword())
-                .withSecurityProtocol(SecurityProtocol.SASL_SSL)
-                .withSASLMechanism("PLAIN")
-                .build();
+        Properties securityProps = null;
+        if (kafkaConfig.getEnableSSL()) {
+            securityProps = new SecurityPropertiesBuilder()
+                    .withSSLTruststoreLocation(kafkaConfig.getSSLTruststoreLocation())
+                    .withSSLTruststorePassword(kafkaConfig.getSSLTruststorePassword())
+                    .withSSLKeystoreLocation(kafkaConfig.getSSLKeystoreLocation())
+                    .withSSLKeystorePassword(kafkaConfig.getSSLKeystorePassword())
+                    .withSSLKeyPassword(kafkaConfig.getSSLKeyPassword())
+                    .withSASLJassConfig(kafkaConfig.getKafkaUsername(), kafkaConfig.getKafkaPassword())
+                    .withSecurityProtocol(SecurityProtocol.SASL_SSL)
+                    .withSASLMechanism("PLAIN")
+                    .build();
+        }
         KafkaClassicCommandTransport transport = new KafkaTransportBuilder()
                 .withRemoteCapability(new Capability())
                 .withProducerKey(KafkaConfigs.getMasterAgentCommandKey(nodeName, jenkinsURL))
@@ -165,6 +173,9 @@ public class KafkaComputerLauncher extends ComputerLauncher {
         return sslKeystoreLocation;
     }
 
+    public boolean getEnableSSL() {
+        return enableSSL;
+    }
 
     private URL retrieveJenkinsURL() throws RemotingKafkaConfigurationException {
         JenkinsLocationConfiguration loc = null;
@@ -198,16 +209,19 @@ public class KafkaComputerLauncher extends ComputerLauncher {
         URL jenkinsURL = retrieveJenkinsURL();
         String topic = KafkaConfigs.getConnectionTopic(agentName, jenkinsURL);
         GlobalKafkaConfiguration kafkaConfig = GlobalKafkaConfiguration.get();
-        Properties securityProps = new SecurityPropertiesBuilder()
-                .withSSLTruststoreLocation(kafkaConfig.getSslTruststoreLocation())
-                .withSSLTruststorePassword(kafkaConfig.getSslTruststorePassword())
-                .withSSLKeystoreLocation(kafkaConfig.getSslKeystoreLocation())
-                .withSSLKeystorePassword(kafkaConfig.getSslKeystorePassword())
-                .withSSLKeyPassword(kafkaConfig.getSslKeyPassword())
-                .withSASLJassConfig(kafkaConfig.getUsername(), kafkaConfig.getPassword())
-                .withSecurityProtocol(SecurityProtocol.SASL_SSL)
-                .withSASLMechanism("PLAIN")
-                .build();
+        Properties securityProps = null;
+        if (kafkaConfig.getEnableSSL()) {
+            securityProps = new SecurityPropertiesBuilder()
+                    .withSSLTruststoreLocation(kafkaConfig.getSSLTruststoreLocation())
+                    .withSSLTruststorePassword(kafkaConfig.getSSLTruststorePassword())
+                    .withSSLKeystoreLocation(kafkaConfig.getSSLKeystoreLocation())
+                    .withSSLKeystorePassword(kafkaConfig.getSSLKeystorePassword())
+                    .withSSLKeyPassword(kafkaConfig.getSSLKeyPassword())
+                    .withSASLJassConfig(kafkaConfig.getKafkaUsername(), kafkaConfig.getKafkaPassword())
+                    .withSecurityProtocol(SecurityProtocol.SASL_SSL)
+                    .withSASLMechanism("PLAIN")
+                    .build();
+        }
         KafkaTransportBuilder settings = new KafkaTransportBuilder()
                 .withProducer(KafkaUtils.createByteProducer(kafkaURL, securityProps))
                 .withConsumer(KafkaUtils.createByteConsumer(kafkaURL,
@@ -230,21 +244,21 @@ public class KafkaComputerLauncher extends ComputerLauncher {
 
         public FormValidation doCheckKafkaUsername(@QueryParameter("kafkaUsername") String kafkaUsername) {
             if (StringUtils.isBlank(kafkaUsername)) {
-                return FormValidation.error(Messages.GlobalKafkaConfiguration_KafkaSecurityWarning());
+                return FormValidation.warning(Messages.GlobalKafkaConfiguration_KafkaSecurityWarning());
             }
             return FormValidation.ok();
         }
 
         public FormValidation doCheckSslTruststoreLocation(@QueryParameter("sslTruststoreLocation") String sslTruststoreLocation) {
             if (StringUtils.isBlank(sslTruststoreLocation)) {
-                return FormValidation.error(Messages.GlobalKafkaConfiguration_KafkaSecurityWarning());
+                return FormValidation.warning(Messages.GlobalKafkaConfiguration_KafkaSecurityWarning());
             }
             return FormValidation.ok();
         }
 
         public FormValidation doCheckSslKeystoreLocation(@QueryParameter("sslKeystoreLocation") String sslKeystoreLocation) {
             if (StringUtils.isBlank(sslKeystoreLocation)) {
-                return FormValidation.error(Messages.GlobalKafkaConfiguration_KafkaSecurityWarning());
+                return FormValidation.warning(Messages.GlobalKafkaConfiguration_KafkaSecurityWarning());
             }
             return FormValidation.ok();
         }

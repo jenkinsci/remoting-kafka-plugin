@@ -161,16 +161,19 @@ public class Engine extends Thread {
     }
 
     private CommandTransport makeTransport() throws RemotingKafkaException {
-        Properties securityProps = new SecurityPropertiesBuilder()
-                .withSSLTruststoreLocation(options.sslTruststoreLocation)
-                .withSSLTruststorePassword(passwordManager.getSslTruststorePassword())
-                .withSSLKeystoreLocation(options.sslKeystoreLocation)
-                .withSSLKeystorePassword(passwordManager.getSslKeystorePassword())
-                .withSSLKeyPassword(passwordManager.getSslKeyPassword())
-                .withSASLJassConfig(options.kafkaUsername, passwordManager.getKafkaPassword())
-                .withSecurityProtocol(SecurityProtocol.SASL_SSL)
-                .withSASLMechanism("PLAIN")
-                .build();
+        Properties securityProps = null;
+        if (!options.noauth) {
+            securityProps = new SecurityPropertiesBuilder()
+                    .withSSLTruststoreLocation(options.sslTruststoreLocation)
+                    .withSSLTruststorePassword(passwordManager.getSslTruststorePassword())
+                    .withSSLKeystoreLocation(options.sslKeystoreLocation)
+                    .withSSLKeystorePassword(passwordManager.getSslKeystorePassword())
+                    .withSSLKeyPassword(passwordManager.getSslKeyPassword())
+                    .withSASLJassConfig(options.kafkaUsername, passwordManager.getKafkaPassword())
+                    .withSecurityProtocol(SecurityProtocol.SASL_SSL)
+                    .withSASLMechanism("PLAIN")
+                    .build();
+        }
         KafkaClassicCommandTransport transport = new KafkaTransportBuilder()
                 .withRemoteCapability(new Capability())
                 .withProducerKey(KafkaConfigs.getAgentMasterCommandKey(options.name, masterURL))

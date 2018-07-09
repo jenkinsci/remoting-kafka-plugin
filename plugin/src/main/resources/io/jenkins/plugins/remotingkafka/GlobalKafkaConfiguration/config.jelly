@@ -14,23 +14,19 @@
         <f:validateButton
                 title="${%Test Broker Connection}" progress="${%Testing...}"
                 method="testBrokerConnection" with="brokerURL" />
-        <f:entry title="${%Credentials}" field="credentialsId">
-            <c:select/>
-        </f:entry>
-        <f:entry field="sslTruststoreLocation" title="${%SSL Truststore Location}">
-            <f:textbox/>
-        </f:entry>
-        <f:entry field="sslTruststorePassword" title="${%SSL Truststore Password}">
-            <f:password/>
-        </f:entry>
-        <f:entry field="sslKeystoreLocation" title="${%SSL Keystore Location}">
-            <f:textbox/>
-        </f:entry>
-        <f:entry field="sslKeystorePassword" title="${%SSL Keystore Password}">
-            <f:password/>
-        </f:entry>
-        <f:entry field="sslKeyPassword" title="${%SSL Key Password}">
-            <f:password/>
-        </f:entry>
+        <f:optionalBlock inline="true" name="enableSSL" title="Enable SSL" field="enableSSL">
+            <f:entry title="${%Kafka Credentials}" field="kafkaCredentialsId">
+                <c:select/>
+            </f:entry>
+            <f:entry title="${%SSL Truststore Credentials}" field="sslTruststoreCredentialsId">
+                <c:select/>
+            </f:entry>
+            <f:entry title="${%SSL Keystore Credentials}" field="sslKeystoreCredentialsId">
+                <c:select/>
+            </f:entry>
+            <f:entry title="${%SSL Key Credentials}" field="sslKeyCredentialsId">
+                <c:select/>
+            </f:entry>
+        </f:optionalBlock>
     </f:section>
 </j:jelly>
