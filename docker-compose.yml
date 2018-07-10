@@ -43,11 +43,11 @@ services:
         ports:
             - "9093:9092"
         links:
-            - zookeeper
+            - zoo2
         environment:
             KAFKA_ADVERTISED_HOST_NAME: ${DOCKERHOST}
             KAFKA_ADVERTISED_PORT: 9093
-            KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+            KAFKA_ZOOKEEPER_CONNECT: zoo2:2181
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
 
@@ -55,3 +55,8 @@ services:
         image: wurstmeister/zookeeper:latest
         ports:
             - "2181:2181"
+
+    zoo2:
+        image: wurstmeister/zookeeper:latest
+        ports:
+            - "2182:2181"
