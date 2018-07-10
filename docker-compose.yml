@@ -41,12 +41,12 @@ services:
     kafka-no-auth:
         image: wurstmeister/kafka:latest
         ports:
-            - "9092:9092"
+            - "9093:9092"
         links:
             - zookeeper
         environment:
             KAFKA_ADVERTISED_HOST_NAME: ${DOCKERHOST}
-            KAFKA_ADVERTISED_PORT: 9092
+            KAFKA_ADVERTISED_PORT: 9093
             KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
