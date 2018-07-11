@@ -2,8 +2,11 @@ package io.jenkins.plugins.remotingkafka;
 
 import hudson.remoting.*;
 import io.jenkins.plugins.remotingkafka.builder.KafkaTransportBuilder;
+import io.jenkins.plugins.remotingkafka.builder.SecurityPropertiesBuilder;
 import io.jenkins.plugins.remotingkafka.commandtransport.KafkaClassicCommandTransport;
+import io.jenkins.plugins.remotingkafka.enums.SecurityProtocol;
 import io.jenkins.plugins.remotingkafka.exception.RemotingKafkaException;
+import io.jenkins.plugins.remotingkafka.security.KafkaPasswordManager;
 import org.jenkinsci.remoting.engine.WorkDirManager;
 import org.jenkinsci.remoting.protocol.cert.BlindTrustX509ExtendedTrustManager;
 import org.jenkinsci.remoting.protocol.cert.DelegatingX509ExtendedTrustManager;
@@ -14,6 +17,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -27,10 +31,9 @@ import java.util.logging.Logger;
 public class Engine extends Thread {
     private static final Logger LOGGER = Logger.getLogger(Engine.class.getName());
     private static final ThreadLocal<Engine> CURRENT = new ThreadLocal<>();
-    private final String agentName;
-    private final String kafkaURL;
-    private final String secret;
     private final EngineListenerSplitter events = new EngineListenerSplitter();
+    private final KafkaPasswordManager passwordManager;
+    private final Options options;
 
     /**
      * Thread pool that sets {@link #CURRENT}.
@@ -67,13 +70,12 @@ public class Engine extends Thread {
     private URL masterURL;
     private DelegatingX509ExtendedTrustManager agentTrustManager = new DelegatingX509ExtendedTrustManager(new BlindTrustX509ExtendedTrustManager());
 
-    public Engine(EngineListener listener, URL masterURL, String agentName, String kafkaURL, String secret) {
+    public Engine(EngineListener listener, URL masterURL, Options options, KafkaPasswordManager passwordManager) {
         this.events.add(listener);
         this.masterURL = masterURL;
-        this.agentName = agentName;
-        this.kafkaURL = kafkaURL;
-        this.secret = secret;
-        if (kafkaURL == null || masterURL == null) throw new IllegalArgumentException("No URLs given");
+        this.options = options;
+        this.passwordManager = passwordManager;
+        if (options.kafkaURL == null || masterURL == null) throw new IllegalArgumentException("No URLs given");
         setUncaughtExceptionHandler((t, e) -> {
             LOGGER.log(Level.SEVERE, "Uncaught exception in Engine thread " + t, e);
             interrupt();
@@ -140,7 +142,7 @@ public class Engine extends Thread {
         // Create the engine
         try {
             while (true) {
-                ChannelBuilder cb = new ChannelBuilder(agentName, executor)
+                ChannelBuilder cb = new ChannelBuilder(options.name, executor)
                         .withJarCacheOrDefault(jarCache);
                 CommandTransport transport = makeTransport();
                 Channel channel = cb.build(transport);
@@ -159,16 +161,30 @@ public class Engine extends Thread {
     }
 
     private CommandTransport makeTransport() throws RemotingKafkaException {
+        Properties securityProps = null;
+        if (!options.noauth) {
+            securityProps = new SecurityPropertiesBuilder()
+                    .withSSLTruststoreLocation(options.sslTruststoreLocation)
+                    .withSSLTruststorePassword(passwordManager.getSslTruststorePassword())
+                    .withSSLKeystoreLocation(options.sslKeystoreLocation)
+                    .withSSLKeystorePassword(passwordManager.getSslKeystorePassword())
+                    .withSSLKeyPassword(passwordManager.getSslKeyPassword())
+                    .withSASLJassConfig(options.kafkaUsername, passwordManager.getKafkaPassword())
+                    .withSecurityProtocol(SecurityProtocol.SASL_SSL)
+                    .withSASLMechanism("PLAIN")
+                    .build();
+        }
         KafkaClassicCommandTransport transport = new KafkaTransportBuilder()
                 .withRemoteCapability(new Capability())
-                .withProducerKey(KafkaConfigs.getAgentMasterCommandKey(agentName, masterURL))
-                .withConsumerKey(KafkaConfigs.getMasterAgentCommandKey(agentName, masterURL))
-                .withProducerTopic(KafkaConfigs.getConnectionTopic(agentName, masterURL))
-                .withConsumerTopic(KafkaConfigs.getConnectionTopic(agentName, masterURL))
+                .withProducerKey(KafkaConfigs.getAgentMasterCommandKey(options.name, masterURL))
+                .withConsumerKey(KafkaConfigs.getMasterAgentCommandKey(options.name, masterURL))
+                .withProducerTopic(KafkaConfigs.getConnectionTopic(options.name, masterURL))
+                .withConsumerTopic(KafkaConfigs.getConnectionTopic(options.name, masterURL))
                 .withProducerPartition(KafkaConfigs.AGENT_MASTER_CMD_PARTITION)
                 .withConsumerPartition(KafkaConfigs.MASTER_AGENT_CMD_PARTITION)
-                .withProducer(KafkaUtils.createByteProducer(kafkaURL))
-                .withConsumer(KafkaUtils.createByteConsumer(kafkaURL, KafkaConfigs.getConsumerGroupID(agentName, masterURL)))
+                .withProducer(KafkaUtils.createByteProducer(options.kafkaURL, securityProps))
+                .withConsumer(KafkaUtils.createByteConsumer(options.kafkaURL,
+                        KafkaConfigs.getConsumerGroupID(options.name, masterURL), securityProps))
                 .withPollTimeout(0)
                 .build();
         return transport;

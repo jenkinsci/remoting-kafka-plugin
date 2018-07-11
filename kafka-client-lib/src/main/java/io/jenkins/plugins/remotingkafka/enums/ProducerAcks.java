@@ -1,4 +1,4 @@
-package io.jenkins.plugins.remotingkafka.builder;
+package io.jenkins.plugins.remotingkafka.enums;
 
 /**
  * Enum for acks in KafkaProducer.

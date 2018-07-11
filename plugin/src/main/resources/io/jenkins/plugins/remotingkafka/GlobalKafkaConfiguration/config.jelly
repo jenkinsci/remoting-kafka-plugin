@@ -1,12 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:c="/lib/credentials">
     <f:section title="${%Remoting Kafka Configuration}">
-        <f:entry field="connectionURL" title="${%Connection URL}">
-            <f:textbox/>
-        </f:entry>
         <f:entry field="zookeeperURL" title="${%Zookeeper URL}">
             <f:textbox/>
         </f:entry>
+        <f:validateButton
+                title="${%Test Zookeeper Connection}" progress="${%Testing...}"
+                method="testZookeeperConnection" with="zookeeperURL" />
+        <f:entry field="brokerURL" title="${%Kafka Broker URL}">
+            <f:textbox/>
+        </f:entry>
+        <f:validateButton
+                title="${%Test Broker Connection}" progress="${%Testing...}"
+                method="testBrokerConnection" with="brokerURL" />
+        <f:optionalBlock inline="true" name="enableSSL" title="Enable SSL" field="enableSSL">
+            <f:entry title="${%Kafka Credentials}" field="kafkaCredentialsId">
+                <c:select/>
+            </f:entry>
+            <f:entry title="${%SSL Truststore Credentials}" field="sslTruststoreCredentialsId">
+                <c:select/>
+            </f:entry>
+            <f:entry title="${%SSL Keystore Credentials}" field="sslKeystoreCredentialsId">
+                <c:select/>
+            </f:entry>
+            <f:entry title="${%SSL Key Credentials}" field="sslKeyCredentialsId">
+                <c:select/>
+            </f:entry>
+        </f:optionalBlock>
     </f:section>
 </j:jelly>

@@ -2,8 +2,8 @@ package io.jenkins.plugins.remoting.kafka.builder;
 
 
 import io.jenkins.plugins.remotingkafka.KafkaConfigs;
-import io.jenkins.plugins.remotingkafka.builder.ProducerAcks;
 import io.jenkins.plugins.remotingkafka.builder.ProducerPropertiesBuilder;
+import io.jenkins.plugins.remotingkafka.enums.ProducerAcks;
 import io.jenkins.plugins.remotingkafka.exception.RemotingKafkaConfigurationException;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.Test;
