@@ -14,6 +14,7 @@ services:
         image: wurstmeister/kafka:latest
         ports:
             - "9092:9092"
+            - "9999:9999"
         links:
             - zookeeper
         volumes:
@@ -37,6 +38,10 @@ services:
             KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
             KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
             KAFKA_OPTS: -Djava.security.auth.login.config=/kafka_server_jaas.conf
+            # JMX config
+            KAFKA_HEAP_OPTS: "-Xmx1G -Xms1G"
+            JMX_PORT: 9999
+            KAFKA_JMX_OPTS: "-Dcom.sun.management.jmxremote=true -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.rmi.port=9999 -Djava.net.preferIPv4Stack=true"
 
     kafka-no-auth:
         image: wurstmeister/kafka:latest
@@ -60,3 +65,15 @@ services:
         image: wurstmeister/zookeeper:latest
         ports:
             - "2182:2181"
+    
+    kafka-manager:
+        image: hlebalbau/kafka-manager:latest
+        ports:
+            - "9000:9000"
+        links:
+            - zookeeper
+            - kafka
+        environment:
+            ZK_HOSTS: "zookeeper:2181"
+            APPLICATION_SECRET: "random-secret"
+        command: -Dpidfile.path=/dev/null
