@@ -67,7 +67,7 @@ services:
             - "2182:2181"
     
     kafka-manager:
-        build: kafka-manager/
+        image: hlebalbau/kafka-manager:latest
         ports:
             - "9000:9000"
         links:
