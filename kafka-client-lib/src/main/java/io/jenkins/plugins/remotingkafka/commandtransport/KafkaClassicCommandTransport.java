@@ -35,6 +35,7 @@ public class KafkaClassicCommandTransport extends SynchronousCommandTransport {
     private final long pollTimeout;
     private final int producerPartition;
     private final int consumerPartition;
+    private boolean isReadClosed;
 
     private Queue<Command> commandQueue;
 
@@ -50,6 +51,7 @@ public class KafkaClassicCommandTransport extends SynchronousCommandTransport {
         this.producerPartition = settings.getProducerPartition();
         this.consumerPartition = settings.getConsumerPartition();
         this.commandQueue = new ConcurrentLinkedQueue<>();
+        this.isReadClosed = false;
     }
 
     @Override
@@ -71,8 +73,11 @@ public class KafkaClassicCommandTransport extends SynchronousCommandTransport {
 
     @Override
     public final void closeRead() throws IOException {
-        consumer.commitSync();
-        KafkaUtils.unassignConsumer(consumer);
+        if (!isReadClosed) {
+            consumer.commitSync();
+            KafkaUtils.unassignConsumer(consumer);
+            isReadClosed = true;
+        }
     }
 
     @Override
