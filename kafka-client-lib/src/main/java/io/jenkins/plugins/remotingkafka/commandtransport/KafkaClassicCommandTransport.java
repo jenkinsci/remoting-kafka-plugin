@@ -68,7 +68,7 @@ public class KafkaClassicCommandTransport extends SynchronousCommandTransport {
 
     @Override
     public final void closeWrite() throws IOException {
-        // Because Kafka producer is thread safe, we do not need to close the producer and may reuse.
+        producer.close();
     }
 
     @Override
