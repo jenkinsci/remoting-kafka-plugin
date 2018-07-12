@@ -1,6 +1,21 @@
 Changelog
 ===
 
+# 1.0.0-alpha-2
+
+Release date: Jul 12, 2018
+
+Features:
+
+* [JENKINS-51472](https://issues.jenkins-ci.org/browse/JENKINS-51472) - Remoting Kafka plugin should support Kafka authorization.
+* [JENKINS-51473](https://issues.jenkins-ci.org/browse/JENKINS-51473) - Remoting Kafka client should support Kafka authorization.
+* [JENKINS-51830](https://issues.jenkins-ci.org/browse/JENKINS-51830) - Add "Test Connection" button to Global Kafka configurations.
+* [JENKINS-52200](https://issues.jenkins-ci.org/browse/JENKINS-52200) - Integrate Kafka admin portal.
+
+Fixed issues:
+
+* [JENKINS-52343](https://issues.jenkins-ci.org/browse/JENKINS-52200) - Fix exceptions of closeRead() method in KafkaClassicCommandTransport.
+
 # 1.0.0-alpha-1
 
 Release date: Jun 28, 2018
