@@ -1,0 +1,43 @@
+jenkins:
+  systemMessage: "Jenkins configured automatically by Jenkins Configuration as Code Plugin\n\n"
+  numExecutors: 1
+  scmCheckoutRetryCount: 2
+  mode: NORMAL
+
+credentials:
+  system:
+    domainCredentials:
+        - credentials:
+          - usernamePassword:
+              scope:    SYSTEM
+              id:       kafka_password
+              username: admin
+              password: admin-secret
+          - usernamePassword:
+              scope:    SYSTEM
+              id:       truststore_password
+              username: /kafka.truststore.jks
+              password: kafkadocker
+          - usernamePassword:
+              scope:    SYSTEM
+              id:       keystore_password
+              username: /kafka.keystore.jks
+              password: kafkadocker
+          - usernamePassword:
+              scope:    SYSTEM
+              id:       sslkey_password
+              username: sslkey
+              password: kafkadocker
+
+unclassified:
+  location:
+    url: http://localhost:8080/
+  
+  globalkafkaconfiguration:
+    brokerURL: 172.17.0.1:9092
+    zookeeperURL: 172.17.0.1:2181
+    enableSSL: true
+    kafkaCredentialsId: kafka_password
+    sslTruststoreCredentialsId: truststore_password
+    sslKeystoreCredentialsId: keystore_password
+    sslKeyCredentialsId: sslkey_password

@@ -46,35 +46,63 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
     }
 
     public static GlobalKafkaConfiguration get() {
-        return GlobalConfiguration.all().get(GlobalKafkaConfiguration.class);
+        return GlobalConfiguration.all().getInstance(GlobalKafkaConfiguration.class);
     }
 
     public String getBrokerURL() {
         return brokerURL;
     }
 
+    public void setBrokerURL(String brokerURL) {
+        this.brokerURL = brokerURL;
+    }
+
     public String getZookeeperURL() {
         return zookeeperURL;
+    }
+
+    public void setZookeeperURL(String zookeeperURL) {
+        this.zookeeperURL = zookeeperURL;
     }
 
     public boolean getEnableSSL() {
         return enableSSL;
     }
 
+    public void setEnableSSL(boolean enableSSL) {
+        this.enableSSL = enableSSL;
+    }
+
     public String getKafkaCredentialsId() {
         return kafkaCredentialsId;
+    }
+
+    public void setKafkaCredentialsId(String kafkaCredentialsId) {
+        this.kafkaCredentialsId = kafkaCredentialsId;
     }
 
     public String getSslTruststoreCredentialsId() {
         return sslTruststoreCredentialsId;
     }
 
+    public void setSslTruststoreCredentialsId(String sslTruststoreCredentialsId) {
+        this.sslTruststoreCredentialsId = sslTruststoreCredentialsId;
+    }
+
     public String getSslKeystoreCredentialsId() {
         return sslKeystoreCredentialsId;
     }
 
+    public void setSslKeystoreCredentialsId(String sslKeystoreCredentialsId) {
+        this.sslKeystoreCredentialsId = sslKeystoreCredentialsId;
+    }
+
     public String getSslKeyCredentialsId() {
         return sslKeyCredentialsId;
+    }
+
+    public void setSslKeyCredentialsId(String sslKeyCredentialsId) {
+        this.sslKeyCredentialsId = sslKeyCredentialsId;
     }
 
     public String getKafkaUsername() throws RemotingKafkaConfigurationException {
@@ -187,7 +215,7 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
         this.zookeeperURL = formData.getString("zookeeperURL");
         this.enableSSL = Boolean.valueOf(formData.getString("enableSSL"));
         save();
-        return super.configure(req, formData);
+        return true;
     }
 
     private void testConnection(String host, int port) throws IOException {

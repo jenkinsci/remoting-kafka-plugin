@@ -1,5 +1,27 @@
 version: '2'
 services:
+    agent:
+        build: .
+        # image: jenkins/remoting-kafka-agent:latest
+        volumes:
+            - './certs/docker.kafka.server.keystore.jks:/kafka.keystore.jks:ro'
+            - './certs/docker.kafka.server.truststore.jks:/kafka.truststore.jks:ro'
+        command: >
+            -name test -master http://localhost:8080/
+            -secret 43b0cef99265f9e34c10ea9d3501926d27b39f57c6d674561d8ba236e7a819fb
+            -kafkaURL 172.17.0.1:9092 -kafkaUsername admin
+            -sslTruststoreLocation /kafka.truststore.jks
+            -sslKeystoreLocation /kafka.keystore.jks
+            -readSecret
+            -kafkaPassword admin-secret
+            -sslTruststorePassword kafkadocker
+            -sslKeystorePassword kafkadocker
+            -sslKeyPassword kafkadocker
+        depends_on:
+            - zookeeper
+            - kafka
+            - jenkins
+
     jenkins:
         build: 
             context: .
@@ -7,9 +29,16 @@ services:
         ports:
             - "8080:8080"
             - "36088:36088"
+        links:
+            - zookeeper
+            - kafka
         volumes:
             - './certs/docker.kafka.server.keystore.jks:/kafka.keystore.jks:ro'
             - './certs/docker.kafka.server.truststore.jks:/kafka.truststore.jks:ro'
+            - './demo/jenkins.yaml:/var/jenkins_home/casc_configs/jenkins.yaml'
+            - './demo/init.groovy:/var/jenkins_home/init.groovy'
+        environment:
+            CASC_JENKINS_CONFIG: /var/jenkins_home/casc_configs/jenkins.yaml
 
     kafka:
         image: wurstmeister/kafka:latest
@@ -22,7 +51,7 @@ services:
             - /var/run/docker.sock:/var/run/docker.sock
             - ./certs/docker.kafka.server.keystore.jks:/kafka.keystore.jks:ro
             - ./certs/docker.kafka.server.truststore.jks:/kafka.truststore.jks:ro
-            - ./docker/kafka_server_jaas.conf:/kafka_server_jaas.conf
+            - ./demo/kafka_server_jaas.conf:/kafka_server_jaas.conf
         environment:
             # Zookeeper config
             KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
@@ -44,28 +73,10 @@ services:
             JMX_PORT: 9999
             KAFKA_JMX_OPTS: "-Dcom.sun.management.jmxremote=true -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.rmi.port=9999 -Djava.net.preferIPv4Stack=true"
 
-    kafka-no-auth:
-        image: wurstmeister/kafka:latest
-        ports:
-            - "9093:9092"
-        links:
-            - zoo2
-        environment:
-            KAFKA_ADVERTISED_HOST_NAME: ${DOCKERHOST}
-            KAFKA_ADVERTISED_PORT: 9093
-            KAFKA_ZOOKEEPER_CONNECT: zoo2:2181
-        volumes:
-            - /var/run/docker.sock:/var/run/docker.sock
-
     zookeeper:
         image: wurstmeister/zookeeper:latest
         ports:
             - "2181:2181"
-
-    zoo2:
-        image: wurstmeister/zookeeper:latest
-        ports:
-            - "2182:2181"
     
     kafka-manager:
         image: hlebalbau/kafka-manager:latest

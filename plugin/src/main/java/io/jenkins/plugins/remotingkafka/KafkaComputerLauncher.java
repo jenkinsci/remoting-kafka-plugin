@@ -165,16 +165,32 @@ public class KafkaComputerLauncher extends ComputerLauncher {
         return kafkaUsername;
     }
 
+    public void setKafkaUsername(String kafkaUsername) {
+        this.kafkaUsername = kafkaUsername;
+    }
+
     public String getSslTruststoreLocation() {
         return sslTruststoreLocation;
+    }
+
+    public void setSslTruststoreLocation(String sslTruststoreLocation) {
+        this.sslTruststoreLocation = sslTruststoreLocation;
     }
 
     public String getSslKeystoreLocation() {
         return sslKeystoreLocation;
     }
 
+    public void setSslKeystoreLocation(String sslKeystoreLocation) {
+        this.sslKeystoreLocation = sslKeystoreLocation;
+    }
+
     public boolean getEnableSSL() {
         return enableSSL;
+    }
+
+    public void setEnableSSL(boolean enableSSL) {
+        this.enableSSL = enableSSL;
     }
 
     private URL retrieveJenkinsURL() throws RemotingKafkaConfigurationException {
