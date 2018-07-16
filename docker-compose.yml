@@ -4,7 +4,6 @@ services:
         build: jenkins/
         ports:
             - "8080:8080"
-            - "50000:50000"       
             - "36088:36088"
         volumes:
             - './certs/docker.kafka.server.keystore.jks:/kafka.keystore.jks:ro'
