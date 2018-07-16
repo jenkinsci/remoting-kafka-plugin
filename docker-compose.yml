@@ -1,7 +1,9 @@
 version: '2'
 services:
     jenkins:
-        build: jenkins/
+        build: 
+            context: .
+            dockerfile: jenkins/Dockerfile
         ports:
             - "8080:8080"
             - "36088:36088"
