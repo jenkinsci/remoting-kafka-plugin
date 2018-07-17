@@ -59,3 +59,32 @@ unclassified:
     sslTruststoreCredentialsId: truststore_password
     sslKeystoreCredentialsId: keystore_password
     sslKeyCredentialsId: sslkey_password
+
+jobs:
+  - >
+    pipelineJob('demo_hello') {
+        definition {
+            cps {
+                sandbox()
+                script("""
+                    node('test') {
+                      sh "echo Hello World"
+                    }
+                """.stripIndent())
+            }
+        }
+    }
+
+  - >
+    pipelineJob('demo_ping') {
+        definition {
+            cps {
+                sandbox()
+                script("""
+                    node('test') {
+                      sh "ping -c 20 google.com"
+                    }
+                """.stripIndent())
+            }
+        }
+    }
