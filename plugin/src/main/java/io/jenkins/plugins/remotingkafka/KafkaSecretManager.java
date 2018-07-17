@@ -13,6 +13,7 @@ import org.apache.kafka.common.TopicPartition;
 import java.io.PrintStream;
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -97,7 +98,7 @@ public final class KafkaSecretManager {
     private void initHandshake() {
         String msg = "hello";
         producer.send(new ProducerRecord<>(producerTopic, producerPartition, producerKey, msg.getBytes(UTF_8)));
-        LOGGER.info("Init secret exchange by sending msg=" + msg + ", in topic=" + producerTopic + ", with partition="
+        LOGGER.log(Level.FINE, "Init secret exchange by sending msg=" + msg + ", in topic=" + producerTopic + ", with partition="
                 + producerPartition + ", with key=" + producerKey);
     }
 }

@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -63,7 +64,7 @@ public class KafkaClassicCommandTransport extends SynchronousCommandTransport {
     public final void write(Command cmd, boolean last) throws IOException {
         byte[] bytes = SerializationUtils.serialize(cmd);
         producer.send(new ProducerRecord<>(producerTopic, producerPartition, producerKey, bytes));
-        LOGGER.info("Sent a command=" + cmd.toString() + ", in topic=" + producerTopic + ", with key=" + producerKey);
+        LOGGER.log(Level.FINE, "Sent a command=" + cmd.toString() + ", in topic=" + producerTopic + ", with key=" + producerKey);
     }
 
     @Override
@@ -84,7 +85,7 @@ public class KafkaClassicCommandTransport extends SynchronousCommandTransport {
     public final Command read() throws IOException, ClassNotFoundException, InterruptedException {
         if (!commandQueue.isEmpty()) {
             Command cmd = commandQueue.poll();
-            LOGGER.info("Received a command: " + cmd.toString());
+            LOGGER.log(Level.FINE, "Received a command: " + cmd.toString());
             return cmd;
         }
         TopicPartition partition = new TopicPartition(consumerTopic, consumerPartition);
@@ -104,7 +105,7 @@ public class KafkaClassicCommandTransport extends SynchronousCommandTransport {
             }
             if (cmd != null) {
                 consumer.commitSync();
-                LOGGER.info("Received a command: " + cmd.toString());
+                LOGGER.log(Level.FINE, "Received a command: " + cmd.toString());
                 return cmd;
             }
         }
