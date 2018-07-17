@@ -89,3 +89,21 @@ services:
             ZK_HOSTS: "zookeeper:2181"
             APPLICATION_SECRET: "random-secret"
         command: -Dpidfile.path=/dev/null
+
+    zoo2:
+        image: wurstmeister/zookeeper:latest
+        ports:
+            - "2182:2181"
+
+    kafka-no-auth:
+        image: wurstmeister/kafka:latest
+        ports:
+            - "9093:9092"
+        links:
+            - zoo2
+        environment:
+            KAFKA_ADVERTISED_HOST_NAME: ${DOCKERHOST}
+            KAFKA_ADVERTISED_PORT: 9093
+            KAFKA_ZOOKEEPER_CONNECT: zoo2:2181
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
