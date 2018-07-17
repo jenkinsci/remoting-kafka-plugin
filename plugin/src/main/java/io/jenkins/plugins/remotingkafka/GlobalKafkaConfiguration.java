@@ -16,6 +16,7 @@ import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -30,6 +31,7 @@ import java.util.Collections;
 import java.util.List;
 
 @Extension
+@Symbol("kafka")
 public class GlobalKafkaConfiguration extends GlobalConfiguration {
     public static final SchemeRequirement KAFKA_SCHEME = new SchemeRequirement("kafka");
 

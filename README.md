@@ -21,18 +21,20 @@ See the [CHANGELOG](CHANGELOG.md).
 
 1. Requirements: docker, docker-compose installed.
 
-2. Build the images: `docker-compose build`.
+2. Run `export DOCKERHOST=$(ifconfig docker0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}')`
 
-3. Run the demo script: `source run_demo.sh`.
+3. Build the demo: `make all`.
 
-4. Features in the demo:
+4. Run the demo: `make run`.
+
+5. Features in the demo:
 
 - Docker Compose starts preconfigured Master and agent instance, they connect automatically using Kafka launcher.
 - Kafka is secured and encrypted with SSL.
 - There few demo jobs in the instance so that a user can launch a job on the agent.
 - Kakfa Manager supported in localhost:9000 to support monitoring of Kafka cluster.
 
-5. Bring down the services: `docker-compose down`
+6. Stop the demo: `make stop`
 
 ## How to use the plugin in alpha version
 

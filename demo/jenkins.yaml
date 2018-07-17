@@ -1,8 +1,24 @@
 jenkins:
-  systemMessage: "Jenkins configured automatically by Jenkins Configuration as Code Plugin\n\n"
+  systemMessage: "Jenkins configured automatically by Jenkins Configuration as Code Plugin.\n\n"
   numExecutors: 1
   scmCheckoutRetryCount: 2
   mode: NORMAL
+  securityRealm:
+    local:
+      users:
+        - id: "admin"
+          password: "admin"
+
+  nodes:
+    - permanent:
+        name: "test"
+        remoteFS: "/home/jenkins"
+        launcher:
+          kafka:
+            enableSSL: "true"
+            kafkaUsername: "admin"
+            sslKeystoreLocation: "/kafka.keystore.jks"
+            sslTruststoreLocation: "/kafka.truststore.jks"
 
 credentials:
   system:
@@ -33,7 +49,7 @@ unclassified:
   location:
     url: http://localhost:8080/
   
-  globalkafkaconfiguration:
+  kafka:
     brokerURL: 172.17.0.1:9092
     zookeeperURL: 172.17.0.1:2181
     enableSSL: true
