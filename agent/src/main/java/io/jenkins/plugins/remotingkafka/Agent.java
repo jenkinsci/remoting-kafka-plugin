@@ -77,15 +77,23 @@ public class Agent {
                 System.exit(-1);
             }
             KafkaPasswordManagerBuilder passwordManagerBuilder = new KafkaPasswordManagerBuilder();
-            Console cons = System.console();
-            System.out.print("Kafka password: ");
-            passwordManagerBuilder.withKafkaPassword(String.valueOf(cons.readPassword()));
-            System.out.print("SSL truststore password: ");
-            passwordManagerBuilder.withSSLTruststorePassword(String.valueOf(cons.readPassword()));
-            System.out.print("SSL keystore password: ");
-            passwordManagerBuilder.withSSLKeystorePassword(String.valueOf(cons.readPassword()));
-            System.out.print("SSL key password: ");
-            passwordManagerBuilder.withSSLKeyPassword(String.valueOf(cons.readPassword()));
+            if (options.readSecret) {
+                passwordManagerBuilder
+                        .withKafkaPassword(options.kafkaPassword)
+                        .withSSLTruststorePassword(options.sslTruststorePassword)
+                        .withSSLKeystorePassword(options.sslKeystorePassword)
+                        .withSSLKeyPassword(options.sslKeyPassword);
+            } else {
+                Console cons = System.console();
+                System.out.print("Kafka password: ");
+                passwordManagerBuilder.withKafkaPassword(String.valueOf(cons.readPassword()));
+                System.out.print("SSL truststore password: ");
+                passwordManagerBuilder.withSSLTruststorePassword(String.valueOf(cons.readPassword()));
+                System.out.print("SSL keystore password: ");
+                passwordManagerBuilder.withSSLKeystorePassword(String.valueOf(cons.readPassword()));
+                System.out.print("SSL key password: ");
+                passwordManagerBuilder.withSSLKeyPassword(String.valueOf(cons.readPassword()));
+            }
             passwordManager = passwordManagerBuilder.build();
             securityProps = new SecurityPropertiesBuilder()
                     .withSSLTruststoreLocation(options.sslTruststoreLocation)

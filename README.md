@@ -17,6 +17,25 @@ More information about this project can be found at: https://jenkins.io/projects
 
 See the [CHANGELOG](CHANGELOG.md).
 
+## How to run demo of the plugin
+
+1. Requirements: docker, docker-compose installed.
+
+2. Run `export DOCKERHOST=$(ifconfig docker0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}')`
+
+3. Build the demo: `make all`.
+
+4. Run the demo: `make run`.
+
+5. Features in the demo:
+
+- Docker Compose starts preconfigured Master and agent instance, they connect automatically using Kafka launcher.
+- Kafka is secured and encrypted with SSL.
+- There few demo jobs in the instance so that a user can launch a job on the agent.
+- Kakfa Manager supported in localhost:9000 to support monitoring of Kafka cluster.
+
+6. Stop the demo: `make stop`
+
 ## How to use the plugin in alpha version
 
 Alpha version of the plugin is now released under [Experimental Update Center](https://jenkins.io/doc/developer/publishing/releasing-experimental-updates/#configuring-jenkins-to-use-experimental-update-center).

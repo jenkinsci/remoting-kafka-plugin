@@ -20,10 +20,10 @@ import java.util.logging.Logger;
  * Manage secret logic.
  */
 public final class KafkaSecretManager {
+    public static final HMACConfidentialKey AGENT_SECRET =
+            new HMACConfidentialKey(KafkaSecretManager.class, "secret");
     private static final Logger LOGGER = Logger.getLogger(KafkaSecretManager.class.getName());
     private static final Charset UTF_8 = Charset.forName("UTF-8");
-    private static final HMACConfidentialKey AGENT_SECRET =
-            new HMACConfidentialKey(KafkaSecretManager.class, "secret");
     private final String agentName;
     private final String producerTopic;
     private final String producerKey;

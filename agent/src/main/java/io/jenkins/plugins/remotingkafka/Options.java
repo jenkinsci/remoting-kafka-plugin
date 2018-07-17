@@ -30,4 +30,19 @@ public class Options {
 
     @Option(name = "-noauth", usage = "Enable to connect agent to master without Kafka authorization")
     public boolean noauth;
+
+    @Option(name = "-readSecret", usage = "Enable to read secrets from command line")
+    public boolean readSecret;
+
+    @Option(name = "-kafkaPassword", usage = "Password to authorize to kafka")
+    public String kafkaPassword;
+
+    @Option(name = "-sslTruststorePassword", usage = "Password of SSL truststore")
+    public String sslTruststorePassword;
+
+    @Option(name = "-sslKeystorePassword", usage = "Password of SSL keystore")
+    public String sslKeystorePassword;
+
+    @Option(name = "-sslKeyPassword", usage = "SSL key password")
+    public String sslKeyPassword;
 }
