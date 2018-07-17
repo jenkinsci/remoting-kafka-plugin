@@ -6,6 +6,7 @@ clean:
 build:
 	./ssl_setup.sh
 	docker-compose build
+	docker-compose pull
 run:
 	docker-compose up -d zookeeper kafka jenkins kafka-manager
 	echo "Waiting 60s for jenkins to be ready..."
