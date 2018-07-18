@@ -1,6 +1,17 @@
 Changelog
 ===
 
+# 1.0
+
+Release date: Jul 18, 2018
+
+Enhancement:
+
+* [JENKINS-52044](https://issues.jenkins-ci.org/browse/JENKINS-52044) - Remove JNLP agent port from the Remoting Kafka Plugin demo.
+* [JENKINS-51471](https://issues.jenkins-ci.org/browse/JENKINS-51471) - Support configuring Remoting Kafka Global config and agents via Configuration-as-Code plugin.
+* [JENKINS-52422](https://issues.jenkins-ci.org/browse/JENKINS-52422) - Remove diagnostics logging of events.
+* [JENKINS-51711](https://issues.jenkins-ci.org/browse/JENKINS-51711) - Ready-to-fly demo for Remoting Kafka.
+
 # 1.0.0-alpha-2
 
 Release date: Jul 12, 2018
