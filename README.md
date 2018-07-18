@@ -34,6 +34,8 @@ See the [CHANGELOG](CHANGELOG.md).
 - There few demo jobs in the instance so that a user can launch a job on the agent.
 - Kakfa Manager supported in localhost:9000 to support monitoring of Kafka cluster.
 
+6. Stop the demo: `make clean`.
+
 ## Links
 
 - [Wiki](https://wiki.jenkins.io/display/JENKINS/Remoting+Kafka+Plugin)
