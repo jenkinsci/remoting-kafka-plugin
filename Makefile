@@ -3,7 +3,7 @@ all: clean build
 clean:
 	docker-compose down
 build:
-	mvn clean install
+	mvn clean package -DskipTests
 	./ssl_setup.sh
 	docker-compose build
 	docker-compose pull
