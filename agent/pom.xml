@@ -4,12 +4,12 @@
     <parent>
         <groupId>io.jenkins.plugins.remoting-kafka</groupId>
         <artifactId>remoting-kafka-plugin</artifactId>
-        <version>1.1-SNAPSHOT</version>
+        <version>${revision}${changelist}</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>remoting-kafka-agent</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>${revision}${changelist}</version>
     <packaging>jar</packaging>
     <name>Remoting Kafka Plugin Agent</name>
     <build>

@@ -12,10 +12,12 @@
     <name>Remoting Kafka Plugin</name>
     <description>Allows users to start agent using Kafka</description>
     <url>https://wiki.jenkins.io/display/JENKINS/Remoting+Kafka+Plugin</url>
-    <version>1.1-SNAPSHOT</version>
+    <version>${revision}${changelist}</version>
     <packaging>pom</packaging>
 
     <properties>
+        <revision>1.1</revision>
+        <changelist>-SNAPSHOT</changelist>
         <remoting.version>3.22</remoting.version>
         <jenkins.version>2.129</jenkins.version>
         <java.level>8</java.level>
@@ -38,7 +40,7 @@
         <connection>scm:git:git://github.com/jenkinsci/remoting-kafka-plugin.git</connection>
         <developerConnection>scm:git:git@github.com:jenkinsci/remoting-kafka-plugin.git</developerConnection>
         <url>https://github.com/jenkinsci/remoting-kafka-plugin</url>
-        <tag>HEAD</tag>
+        <tag>${scmTag}</tag>
     </scm>
 
     <developers>
