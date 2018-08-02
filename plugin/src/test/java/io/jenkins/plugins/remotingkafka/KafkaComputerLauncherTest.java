@@ -1,5 +1,6 @@
 package io.jenkins.plugins.remotingkafka;
 
+import com.salesforce.kafka.test.junit4.SharedKafkaTestResource;
 import hudson.model.Computer;
 import hudson.model.FreeStyleProject;
 import hudson.slaves.DumbSlave;
@@ -7,26 +8,20 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
-import org.testcontainers.containers.DockerComposeContainer;
-
-import java.io.File;
 
 import static org.junit.Assert.assertNotNull;
 
 public class KafkaComputerLauncherTest {
     @ClassRule
-    public static DockerComposeContainer environment = new DockerComposeContainer(new File("src/test/resources/compose-test.yml"))
-            .withExposedService("zookeeper_1", 2181)
-            .withExposedService("kafka_1", 9092);
+    public static final SharedKafkaTestResource sharedKafkaTestResource = new SharedKafkaTestResource();
 
     @Rule
     public JenkinsRule j = new JenkinsRule();
 
-    private String kafkaURL = environment.getServiceHost("kafka_1", 9092) + ":9092";
-    private String zookeeperURL = environment.getServiceHost("zookeeper_1", 2181) + ":2181";
-
     @Test
     public void configureRoundTrip() throws Exception {
+        String kafkaURL = sharedKafkaTestResource.getKafkaConnectString();
+        String zookeeperURL = sharedKafkaTestResource.getZookeeperConnectString();
         GlobalKafkaConfiguration g = GlobalKafkaConfiguration.get();
         g.setBrokerURL(kafkaURL);
         g.setZookeeperURL(zookeeperURL);
