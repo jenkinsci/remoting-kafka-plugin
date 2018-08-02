@@ -1,5 +1,6 @@
 package io.jenkins.plugins.remotingkafka;
 
+import hudson.AbortException;
 import hudson.Extension;
 import hudson.model.Computer;
 import hudson.model.Descriptor;
@@ -36,6 +37,7 @@ import java.util.logging.Logger;
 
 public class KafkaComputerLauncher extends ComputerLauncher {
     private static final Logger LOGGER = Logger.getLogger(KafkaComputerLauncher.class.getName());
+    private static final long DEFAULT_TIMEOUT = 60000;
 
     @CheckForNull
     private transient volatile ExecutorService launcherExecutorService;
@@ -72,22 +74,37 @@ public class KafkaComputerLauncher extends ComputerLauncher {
         callables.add(new Callable<Boolean>() {
             @Override
             public Boolean call() throws Exception {
-                String topic = KafkaConfigs.getConnectionTopic(computer.getName(), retrieveJenkinsURL());
-                KafkaUtils.createTopic(topic, GlobalKafkaConfiguration.get().getZookeeperURL(),
-                        4, 1);
-                if (!isValidAgent(computer.getName(), listener)) {
-                    return false;
-                }
-                ChannelBuilder cb = new ChannelBuilder(computer.getName(), computer.threadPoolForRemoting)
-                        .withHeaderStream(listener.getLogger());
-                CommandTransport ct = makeTransport(computer);
-                computer.setChannel(cb, ct, new Channel.Listener() {
-                    @Override
-                    public void onClosed(Channel channel, IOException cause) {
-                        super.onClosed(channel, cause);
+                Boolean rval = Boolean.FALSE;
+                try {
+                    String topic = KafkaConfigs.getConnectionTopic(computer.getName(), retrieveJenkinsURL());
+                    KafkaUtils.createTopic(topic, GlobalKafkaConfiguration.get().getZookeeperURL(),
+                            4, 1);
+                    if (!isValidAgent(computer.getName(), listener)) {
+                        return false;
                     }
-                });
-                return true;
+                    ChannelBuilder cb = new ChannelBuilder(computer.getName(), computer.threadPoolForRemoting)
+                            .withHeaderStream(listener.getLogger());
+                    CommandTransport ct = makeTransport(computer);
+                    computer.setChannel(cb, ct, new Channel.Listener() {
+                        @Override
+                        public void onClosed(Channel channel, IOException cause) {
+                            super.onClosed(channel, cause);
+                        }
+                    });
+                    rval = Boolean.TRUE;
+                } catch (RuntimeException e) {
+                    e.printStackTrace(listener.error(Messages.KafkaComputerLauncher_UnexpectedError()));
+                } catch (Error e) {
+                    e.printStackTrace(listener.error(Messages.KafkaComputerLauncher_UnexpectedError()));
+                } catch (AbortException e) {
+                    listener.getLogger().println(e.getMessage());
+                } catch (IOException e) {
+                    e.printStackTrace(listener.getLogger());
+                } catch (Exception e) {
+                    listener.getLogger().println(e.getMessage());
+                } finally {
+                    return rval;
+                }
             }
         });
         try {
@@ -96,11 +113,11 @@ public class KafkaComputerLauncher extends ComputerLauncher {
             if (srv == null) {
                 throw new IllegalStateException(Messages.KafkaComputerLauncher_NonnullExecutorService());
             }
-            results = srv.invokeAll(callables);
+            results = srv.invokeAll(callables, DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS);
             Boolean res;
             try {
                 res = results.get(0).get();
-            } catch (ExecutionException e) {
+            } catch (CancellationException | ExecutionException e) {
                 LOGGER.log(Level.SEVERE, "Execution exception when launch: ", e);
                 res = Boolean.FALSE;
             }
@@ -109,12 +126,23 @@ public class KafkaComputerLauncher extends ComputerLauncher {
             } else {
                 listener.getLogger().println(Messages.KafkaComputerLauncher_LaunchSuccessful());
             }
+        } catch (InterruptedException e) {
+            listener.getLogger().println(Messages.KafkaComputerLauncher_LaunchFailed());
         } finally {
             ExecutorService srv = launcherExecutorService;
             if (srv != null) {
                 srv.shutdownNow();
                 launcherExecutorService = null;
             }
+        }
+    }
+
+    @Override
+    public void afterDisconnect(SlaveComputer slaveComputer, final TaskListener listener) {
+        ExecutorService srv = launcherExecutorService;
+        if (srv != null) {
+            // If the service is still running, shut it down and interrupt the operations if any
+            srv.shutdown();
         }
     }
 
@@ -248,7 +276,7 @@ public class KafkaComputerLauncher extends ComputerLauncher {
                 .withConsumerTopic(topic)
                 .withProducerPartition(KafkaConfigs.MASTER_AGENT_SECRET_PARTITION)
                 .withConsumerPartition(KafkaConfigs.AGENT_MASTER_SECRET_PARTITION);
-        KafkaSecretManager secretManager = new KafkaSecretManager(agentName, settings, 60000, listener);
+        KafkaSecretManager secretManager = new KafkaSecretManager(agentName, settings, DEFAULT_TIMEOUT, listener);
         return secretManager.waitForValidAgent();
     }
 

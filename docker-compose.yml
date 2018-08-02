@@ -40,7 +40,7 @@ services:
             CASC_JENKINS_CONFIG: /var/jenkins_home/casc_configs/jenkins.yaml
 
     kafka:
-        image: wurstmeister/kafka:latest
+        image: wurstmeister/kafka:2.11-1.1.0
         ports:
             - "9092:9092"
             - "9999:9999"

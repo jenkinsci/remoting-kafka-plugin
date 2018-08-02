@@ -37,9 +37,9 @@ public final class KafkaSecretManager {
     /**
      * Timeout in milliseconds.
      */
-    private int timeout;
+    private long timeout;
 
-    public KafkaSecretManager(String agentName, KafkaTransportBuilder settings, int timeout, TaskListener listener) {
+    public KafkaSecretManager(String agentName, KafkaTransportBuilder settings, long timeout, TaskListener listener) {
         this.agentName = agentName;
         this.producer = settings.getProducer();
         this.consumer = settings.getConsumer();
