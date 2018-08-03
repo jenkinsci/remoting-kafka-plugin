@@ -75,13 +75,13 @@ public class KafkaComputerLauncher extends ComputerLauncher {
             @Override
             public Boolean call() throws Exception {
                 Boolean rval = Boolean.FALSE;
+                String topic = KafkaConfigs.getConnectionTopic(computer.getName(), retrieveJenkinsURL());
+                KafkaUtils.createTopic(topic, GlobalKafkaConfiguration.get().getZookeeperURL(),
+                        4, 1);
+                if (!isValidAgent(computer.getName(), listener)) {
+                    return Boolean.FALSE;
+                }
                 try {
-                    String topic = KafkaConfigs.getConnectionTopic(computer.getName(), retrieveJenkinsURL());
-                    KafkaUtils.createTopic(topic, GlobalKafkaConfiguration.get().getZookeeperURL(),
-                            4, 1);
-                    if (!isValidAgent(computer.getName(), listener)) {
-                        return false;
-                    }
                     ChannelBuilder cb = new ChannelBuilder(computer.getName(), computer.threadPoolForRemoting)
                             .withHeaderStream(listener.getLogger());
                     CommandTransport ct = makeTransport(computer);
