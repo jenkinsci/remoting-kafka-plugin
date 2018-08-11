@@ -36,9 +36,15 @@
             <version>2.1.17</version>
         </dependency>
         <dependency>
-            <groupId>com.salesforce.kafka.test</groupId>
-            <artifactId>kafka-junit4</artifactId>
-            <version>3.0.1</version>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>kafka</artifactId>
+            <version>1.8.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+            <version>1.16.1</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
