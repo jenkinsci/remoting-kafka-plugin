@@ -29,7 +29,7 @@ See [DOCUMENTATION](docs/DOCUMENTATION.md)
 
 3. Build the demo: `make all`.
 
-4. Run the demo: `make run`.
+4. Run the demo: `make run` (without security feature `make run-no-auth`).
 
 5. Features in the demo:
 

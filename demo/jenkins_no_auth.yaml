@@ -1,0 +1,58 @@
+jenkins:
+  systemMessage: "Jenkins configured automatically by Jenkins Configuration as Code Plugin
+                  for the demo of Remoting Kafka Plugin
+                  https://github.com/jenkinsci/remoting-kafka-plugin.\n\n"
+  numExecutors: 1
+  scmCheckoutRetryCount: 2
+  mode: NORMAL
+  securityRealm:
+    local:
+      users:
+        - id: "admin"
+          password: "admin"
+
+  nodes:
+    - permanent:
+        name: "test"
+        remoteFS: "/home/jenkins"
+        launcher:
+          kafka:
+            enableSSL: "false"
+
+unclassified:
+  location:
+    url: http://localhost:8080/
+  
+  kafka:
+    brokerURL: 172.17.0.1:9093
+    zookeeperURL: 172.17.0.1:2182
+    enableSSL: false
+
+jobs:
+  - >
+    pipelineJob('demo_hello') {
+        definition {
+            cps {
+                sandbox()
+                script("""
+                    node('test') {
+                      sh "echo Hello World"
+                    }
+                """.stripIndent())
+            }
+        }
+    }
+
+  - >
+    pipelineJob('demo_ping') {
+        definition {
+            cps {
+                sandbox()
+                script("""
+                    node('test') {
+                      sh "ping -c 20 google.com"
+                    }
+                """.stripIndent())
+            }
+        }
+    }

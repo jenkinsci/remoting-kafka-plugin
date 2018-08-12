@@ -89,6 +89,22 @@ services:
             APPLICATION_SECRET: "random-secret"
         command: -Dpidfile.path=/dev/null
 
+    jenkins-no-auth:
+        build:
+            context: .
+            dockerfile: jenkins/Dockerfile
+        ports:
+            - "8080:8080"
+            - "36088:36088"
+        links:
+            - zoo2
+            - kafka-no-auth
+        volumes:
+            - './demo/jenkins_no_auth.yaml:/var/jenkins_home/casc_configs/jenkins.yaml'
+            - './demo/init.groovy:/var/jenkins_home/init.groovy'
+        environment:
+            CASC_JENKINS_CONFIG: /var/jenkins_home/casc_configs/jenkins.yaml
+
     zoo2:
         image: wurstmeister/zookeeper:latest
         ports:
@@ -106,3 +122,15 @@ services:
             KAFKA_ZOOKEEPER_CONNECT: zoo2:2181
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
+
+    agent-no-auth:
+        image: jenkins/remoting-kafka-agent:latest
+        command: >
+            -name test -master http://localhost:8080/
+            -secret 43b0cef99265f9e34c10ea9d3501926d27b39f57c6d674561d8ba236e7a819fb
+            -kafkaURL 172.17.0.1:9093
+            -noauth
+        depends_on:
+            - zoo2
+            - kafka-no-auth
+            - jenkins-no-auth
