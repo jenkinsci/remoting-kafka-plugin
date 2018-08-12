@@ -7,14 +7,17 @@ Release date: Aug 12, 2018
 
 Enhancement:
 
-* [JENKINS-51714](https://issues.jenkins-ci.org/browse/JENKINS-51714) - Basic test automation for the plugin.
 * [JENKINS-52079](https://issues.jenkins-ci.org/browse/JENKINS-52079) - Tear down connection when master or agent stops.
-* [JENKINS-52879](https://issues.jenkins-ci.org/browse/JENKINS-52879) - Explore testcontainers for test automation.
 
 Documentation:
 
 * [JENKINS-52514](https://issues.jenkins-ci.org/browse/JENKINS-52514) - Add technical documentation of the plugin.
 * [JENKINS-52987](https://issues.jenkins-ci.org/browse/JENKINS-52987) - Update demo instruction to use the plugin without Kafka-enabled SSL.
+
+Test automation:
+
+* [JENKINS-51714](https://issues.jenkins-ci.org/browse/JENKINS-51714) - Basic test automation for the plugin.
+* [JENKINS-52879](https://issues.jenkins-ci.org/browse/JENKINS-52879) - Explore testcontainers for test automation.
 
 # 1.0
 
