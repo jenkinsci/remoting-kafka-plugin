@@ -12,7 +12,7 @@
     <artifactId>remoting-kafka</artifactId>
     <version>1.1-SNAPSHOT</version>
     <packaging>hpi</packaging>
-    <name>Remoting Kafka Plugin Module</name>
+    <name>Remoting Kafka Plugin</name>
     <properties>
         <jenkins.version>2.129</jenkins.version>
         <java.level>8</java.level>
