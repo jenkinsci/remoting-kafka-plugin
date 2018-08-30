@@ -14,7 +14,7 @@ run:
 	docker-compose up -d agent
 
 run-no-auth:
-	docker-compose up -d zoo2 kafka-no-auth jenkins-no-auth
+	docker-compose up -d zoo2 kafka-no-auth jenkins-no-auth kafka-manager-no-auth
 	echo "Waiting 60s for jenkins to be ready..."
 	sleep 60
 	docker-compose up -d agent-no-auth
