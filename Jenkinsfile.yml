@@ -1,18 +1,9 @@
 agent:
-#  Docket image agent example
-#  label: my_label
-#  customWorkspace: path_to_workspace
-#  dockerImage: maven:3-alpine
-#  args: -v /tmp:/tmp
-
-  # tools needs to be defined in the tool configuration
   tools:
     maven : maven_3.0.1
     jdk : jdk8
 
 configuration:
-  # Push PR changes to the target branch if the build will be success.
-  # default value will be false
   pushPrOnSuccess: false
 
   prApprovers:
@@ -20,7 +11,6 @@ configuration:
     - username2
     - username3
 
-  # Study about the reports type. Urgent
   reports:
     - location_of_report_1
     - location_of_report_2
@@ -30,12 +20,10 @@ environment:
     variable_1: value_1
     variable_2: value_2
 
-  # Credentials contains only two fields. See pipeline file for how it will be used
   credentials:
     - credentialId : fileCredentialId
       variable : FILE
 
-      # Username will be accessed by LOGIN_USR and Password will be accessed by LOGIN_PSW
     - credentialId : dummyGitRepo
       variable : LOGIN
 
@@ -48,9 +36,6 @@ stages:
       - sh: "scripts/hello"
       - sleep:
           time: 2
-#          Configurator.lookup() in JCasc plugin returns null for java.util.concurrent.TimeUnit which is an Enum class
-#          jira link: https://issues.jenkins-ci.org/browse/JENKINS-52443
-#          unit: SECONDS
       - sleep: 2
       - junit:
           testResults: "target/**.xml"
@@ -59,8 +44,6 @@ stages:
             - AutomateTestDataPublisher
             - JunitResultPublisher:
                 urlOverride: "urlOverride"
-#           JCasc plugin having problem in configuring below class
-#           jira link: https://issues.jenkins-ci.org/browse/JENKINS-52444
 
             - JiraTestDataPublisher:
                 configs:
