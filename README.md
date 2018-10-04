@@ -21,6 +21,7 @@ See the [CHANGELOG](CHANGELOG.md).
 
 - [Contributing](docs/CONTRIBUTING.md)
 - [Technical Documentation](docs/DOCUMENTATION.md)
+- [Report an issue](https://issues.jenkins-ci.org/browse/JENKINS-53417)
 
 ## How to run demo of the plugin
 
@@ -54,3 +55,4 @@ See the [CHANGELOG](CHANGELOG.md).
 - [Phase 1 Evaluation Video](https://youtu.be/qWHM8S0fzUw)
 - [Phase 2 Evaluation Video](https://youtu.be/tuTODhJOTBU)
 - [Phase 3 Evaluation Video](https://youtu.be/GGEtN4nbtng)
+- [Jenkins World Presentation Slides](https://docs.google.com/presentation/d/1drRIDNvDKdBE-VuuLFXlWRB0NhSFr1aWrg2p8qrF3co/edit?usp=sharing)
