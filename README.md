@@ -5,6 +5,10 @@
 
 This plugin can be found in [Jenkins Plugin](https://plugins.jenkins.io/remoting-kafka).
 
+![Plugin](docs/plugin.png)
+
+Slides for Jenkins World 2018 presentation [available here](https://docs.google.com/presentation/d/1drRIDNvDKdBE-VuuLFXlWRB0NhSFr1aWrg2p8qrF3co/edit?usp=sharings).
+
 ## Overview
 
 Current versions of Jenkins Remoting are based on the TCP protocol. If it fails, the agent connection and the build fails as well. There are also issues with traffic prioritization and multi-agent communications, which impact Jenkins stability and scalability.
