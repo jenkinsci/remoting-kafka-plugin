@@ -7,7 +7,7 @@ This plugin can be found in [Jenkins Plugin](https://plugins.jenkins.io/remoting
 
 ![Plugin](docs/plugin.png)
 
-Slides for Jenkins World 2018 presentation [available here](https://docs.google.com/presentation/d/1drRIDNvDKdBE-VuuLFXlWRB0NhSFr1aWrg2p8qrF3co/edit?usp=sharings).
+Slides for DevOps World | Jenkins World 2018 presentation [available here](https://docs.google.com/presentation/d/1drRIDNvDKdBE-VuuLFXlWRB0NhSFr1aWrg2p8qrF3co/edit?usp=sharings).
 
 ## Overview
 
