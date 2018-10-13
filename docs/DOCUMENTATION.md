@@ -16,6 +16,20 @@ The below picture gives an overview architecture of the plugin.
 
 All command invocations, RMI, class loading, data streaming between master and agent are now transfered to/from a Kafka broker.
 
+## Communication model
+
+The plugin uses manual partition assignment for topic management in Kafka. A master-agent connection will create a topic on the fly with 4 partitions:
+
+* Partition 0: command from master to agent.
+
+* Partition 1: command from agent to master.
+
+* Partition 2: secret message from master to agent.
+
+* Partition 3: secret message from agent to master.
+
+![Communication Model](communication_model.png)
+
 ## Shared components (kafka-client-lib)
 
 Shared components to be reused between master and agent, with the core [KafkaClassicCommandTransport](/kafka-client-lib/src/main/java/io/jenkins/plugins/remotingkafka/commandtransport/KafkaClassicCommandTransport.java). This is the core of the plugin, an extension of Jenkins [CommandTransport](https://github.com/jenkinsci/remoting/blob/master/src/main/java/hudson/remoting/CommandTransport.java), which supports command transports to/from Kafka.
@@ -30,12 +44,3 @@ Shared components to be reused between master and agent, with the core [KafkaCla
 * [Engine](/agent/src/main/java/io/jenkins/plugins/remotingkafka/Engine.java): A rewritten version of remoting original [Engine](https://github.com/jenkinsci/remoting/blob/master/src/main/java/hudson/remoting/Engine.java) to support Kafka transport.
 * [KafkaClientListener](/kafka-client-lib/src/main/java/io/jenkins/plugins/remotingkafka/KafkaClientListener.java): A listener thread to listen to incoming messages from Kafka and produce outgoing response messages. To be used as a secret listener in agent.
 * remoting.jar bundling [JENKINS-52871](https://issues.jenkins-ci.org/browse/JENKINS-52871).
-
-## Kafka Producer/Consumer topic model
-
-The plugin uses manual partition assignment for topic management in Kafka. A master-agent connection will create 1 topic on the fly with 4 partitions:
-
-* Partition 0 for command from master to agent.
-* Partition 1 for command from agent to master.
-* Partition 2 for secret message from master to agent.
-* Partition 3 for secret message from agent to master.
