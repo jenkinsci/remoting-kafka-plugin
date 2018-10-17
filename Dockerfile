@@ -6,7 +6,7 @@ COPY plugin/ /jenkins/src/plugin/
 COPY pom.xml /jenkins/src/pom.xml
 
 WORKDIR /jenkins/src/
-RUN mvn clean install --batch-mode
+RUN mvn clean -Dtest=\!KafkaComputerLauncherTest -DfailIfNoTests=false install --batch-mode
 
 # copy agent
 FROM ubuntu
