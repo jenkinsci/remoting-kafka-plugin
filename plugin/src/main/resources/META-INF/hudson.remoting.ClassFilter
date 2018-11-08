@@ -1,0 +1,7 @@
+org.I0Itec.zkclient.ZkClient
+org.I0Itec.zkclient.ZkConnection
+org.apache.zookeeper.ZooKeeper
+org.apache.zookeeper.ClientCnxn
+org.apache.zookeeper.ZooKeeper$ZKWatchManager
+org.apache.zookeeper
+org[.]apache[.]zookeeper[.].*

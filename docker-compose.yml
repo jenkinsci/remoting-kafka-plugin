@@ -53,6 +53,8 @@ services:
             - ./certs/docker.kafka.server.truststore.jks:/kafka.truststore.jks:ro
             - ./demo/kafka_server_jaas.conf:/kafka_server_jaas.conf
         environment:
+            # Kafka topic config
+            KAFKA_DELETE_TOPIC_ENABLE: "true"
             # Zookeeper config
             KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
             # SSL config env

@@ -41,14 +41,11 @@ public class KafkaComputerLauncher extends ComputerLauncher {
 
     @CheckForNull
     private transient volatile ExecutorService launcherExecutorService;
-
     private String kafkaUsername;
-
     private String sslTruststoreLocation;
-
     private String sslKeystoreLocation;
-
     private boolean enableSSL;
+    private ZookeeperManager zookeeperManager;
 
     @DataBoundConstructor
     public KafkaComputerLauncher(String kafkaUsername, String sslTruststoreLocation, String sslKeystoreLocation,
@@ -57,6 +54,7 @@ public class KafkaComputerLauncher extends ComputerLauncher {
         this.sslTruststoreLocation = sslTruststoreLocation;
         this.sslKeystoreLocation = sslKeystoreLocation;
         this.enableSSL = Boolean.valueOf(enableSSL);
+        zookeeperManager = ZookeeperManager.getInstance();
     }
 
     @Override
@@ -76,8 +74,12 @@ public class KafkaComputerLauncher extends ComputerLauncher {
             public Boolean call() throws Exception {
                 Boolean rval = Boolean.FALSE;
                 String topic = KafkaConfigs.getConnectionTopic(computer.getName(), retrieveJenkinsURL());
-                KafkaUtils.createTopic(topic, GlobalKafkaConfiguration.get().getZookeeperURL(),
-                        4, 1);
+                try {
+                    zookeeperManager.init(GlobalKafkaConfiguration.get().getZookeeperURL());
+                } catch (RemotingKafkaConfigurationException ex) {
+                    ex.printStackTrace();
+                }
+                zookeeperManager.createTopic(topic, 4, 1);
                 if (!isValidAgent(computer.getName(), listener)) {
                     return Boolean.FALSE;
                 }
@@ -138,7 +140,7 @@ public class KafkaComputerLauncher extends ComputerLauncher {
     }
 
     @Override
-    public void afterDisconnect(SlaveComputer slaveComputer, final TaskListener listener) {
+    public void afterDisconnect(SlaveComputer computer, final TaskListener listener) {
         ExecutorService srv = launcherExecutorService;
         if (srv != null) {
             // If the service is still running, shut it down and interrupt the operations if any
