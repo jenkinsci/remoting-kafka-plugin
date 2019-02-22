@@ -1,6 +1,26 @@
 Changelog
 ===
 
+# 1.1.3
+
+Release date: Oct 20, 2018
+
+Bug fix:
+
+* [JENKINS-54130](https://issues.jenkins-ci.org/browse/JENKINS-54130) - Fix Remoting Kafka agent docker build.
+
+# 1.1.1
+
+Release date: Oct 03, 2018
+
+Upgrade:
+
+* [JENKINS-53416](https://issues.jenkins-ci.org/browse/JENKINS-53416) - Upgrade remoting to 3.26 and core to 2.138.1.
+
+Bug fix:
+
+* [JENKINS-53397](https://issues.jenkins-ci.org/browse/JENKINS-53397) - Fix ChannelClosedException when using kafka nodes.
+
 # 1.1
 
 Release date: Aug 12, 2018

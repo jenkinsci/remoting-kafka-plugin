@@ -5,6 +5,10 @@
 
 This plugin can be found in [Jenkins Plugin](https://plugins.jenkins.io/remoting-kafka).
 
+![Plugin](docs/plugin.png)
+
+Slides for DevOps World | Jenkins World 2018 presentation [available here](https://docs.google.com/presentation/d/1drRIDNvDKdBE-VuuLFXlWRB0NhSFr1aWrg2p8qrF3co/edit?usp=sharings).
+
 ## Overview
 
 Current versions of Jenkins Remoting are based on the TCP protocol. If it fails, the agent connection and the build fails as well. There are also issues with traffic prioritization and multi-agent communications, which impact Jenkins stability and scalability.
@@ -17,9 +21,11 @@ More information about this project can be found at: https://jenkins.io/projects
 
 See the [CHANGELOG](CHANGELOG.md).
 
-## Technical documentation
+## Developer documentation
 
-See [DOCUMENTATION](docs/DOCUMENTATION.md)
+- [Contributing](docs/CONTRIBUTING.md)
+- [Technical Documentation](docs/DOCUMENTATION.md)
+- [Report an issue](https://issues.jenkins-ci.org/browse/JENKINS-53417)
 
 ## How to run demo of the plugin
 
@@ -42,11 +48,15 @@ See [DOCUMENTATION](docs/DOCUMENTATION.md)
 
 ## Links
 
+- [JIRA issues](https://issues.jenkins-ci.org/browse/JENKINS-53417)
 - [Wiki](https://wiki.jenkins.io/display/JENKINS/Remoting+Kafka+Plugin)
 - [Project Info](https://jenkins.io/projects/gsoc/2018/remoting-over-message-bus/)
 - [Introduction Blogpost](https://jenkins.io/blog/2018/06/18/remoting-over-message-bus/)
 - [1.0 Release Blogpost](https://jenkins.io/blog/2018/07/23/remoting-kafka-plugin-1/)
 - [Phase 1 Evaluation Slides](https://docs.google.com/presentation/d/1GxkI17lZYQ6_pyAOR9sXNXq1K3LwkqjigXdxxf81VkE/edit?usp=sharing)
 - [Phase 2 Evaluation Slides](https://docs.google.com/presentation/d/1TW31N-opvoFwSkD-FChhjCsXNWmeDjkecxJv8Lb6X-A/edit?usp=sharing)
+- [Phase 3 Evaluation Slides](https://docs.google.com/presentation/d/1DspO4nXEzbvDhrv4xY41xqCfjgHzYM5rLxmKbVnQV1Y/edit?usp=sharing)
 - [Phase 1 Evaluation Video](https://youtu.be/qWHM8S0fzUw)
 - [Phase 2 Evaluation Video](https://youtu.be/tuTODhJOTBU)
+- [Phase 3 Evaluation Video](https://youtu.be/GGEtN4nbtng)
+- [Jenkins World Presentation Slides](https://docs.google.com/presentation/d/1drRIDNvDKdBE-VuuLFXlWRB0NhSFr1aWrg2p8qrF3co/edit?usp=sharing)

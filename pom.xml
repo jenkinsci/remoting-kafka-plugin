@@ -12,12 +12,12 @@
     <name>Remoting Kafka Plugin</name>
     <description>Allows users to start agent using Kafka</description>
     <url>https://wiki.jenkins.io/display/JENKINS/Remoting+Kafka+Plugin</url>
-    <version>1.2-SNAPSHOT</version>
+    <version>1.1.4-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <properties>
         <remoting.version>3.26</remoting.version>
-        <jenkins.version>2.129</jenkins.version>
+        <jenkins.version>2.138.1</jenkins.version>
         <java.level>8</java.level>
     </properties>
 

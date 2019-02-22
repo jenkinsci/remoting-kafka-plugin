@@ -1,4 +1,4 @@
-FROM jenkins/jenkins:2.129
+FROM jenkins/jenkins:2.138.1
 ADD plugin/target/remoting-kafka.hpi /usr/share/jenkins/ref/plugins/remoting-kafka.jpi
 USER root
 COPY install-plugins.sh /usr/local/bin/install-plugins.sh
