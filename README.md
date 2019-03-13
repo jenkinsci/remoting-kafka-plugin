@@ -31,7 +31,11 @@ See the [CHANGELOG](CHANGELOG.md).
 
 1. Requirements: docker, docker-compose installed.
 
-2. Run `export DOCKERHOST=$(ifconfig docker0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}')`
+2. Set environment variable `DOCKERHOST`
+
+- Windows: `set DOCKERHOST=host.docker.internal`
+- macOS: `export DOCKERHOST=host.docker.internal`
+- Linux: `export DOCKERHOST=$(ifconfig docker0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}')`
 
 3. Build the demo: `make all`.
 
