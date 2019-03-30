@@ -19,7 +19,7 @@ public class ConsumerPropertiesBuilder {
      * We use a single cluster for now.
      */
     @CheckForNull
-    private String bootsrapServers;
+    private String bootstrapServers;
 
     /**
      * If true the consumer's offset will be periodically committed in the background.
@@ -56,7 +56,7 @@ public class ConsumerPropertiesBuilder {
     }
 
     public ConsumerPropertiesBuilder withBootstrapServers(String bootstrapServers) {
-        this.bootsrapServers = bootstrapServers;
+        this.bootstrapServers = bootstrapServers;
         return this;
     }
 
@@ -93,10 +93,10 @@ public class ConsumerPropertiesBuilder {
 
     public Properties build() throws RemotingKafkaConfigurationException {
         Properties props = (securityProps == null) ? new Properties() : securityProps;
-        if (bootsrapServers == null) {
+        if (bootstrapServers == null) {
             throw new RemotingKafkaConfigurationException("Please provide Kafka consumer bootstrap servers");
         }
-        props.put(KafkaConfigs.BOOTSTRAP_SERVERS, bootsrapServers);
+        props.put(KafkaConfigs.BOOTSTRAP_SERVERS, bootstrapServers);
         props.put(KafkaConfigs.ENABLE_AUTO_COMMIT, enableAutoCommit);
         if (groupID != null) {
             props.put(KafkaConfigs.GROUP_ID, groupID);

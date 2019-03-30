@@ -19,7 +19,7 @@ public class ProducerPropertiesBuilder {
      * We use a single cluster for now.
      */
     @CheckForNull
-    private String bootsrapServers;
+    private String bootstrapServers;
 
     /**
      * The number of acknowledgments the producer requires the leader to have received before considering a request complete.
@@ -42,7 +42,7 @@ public class ProducerPropertiesBuilder {
     private Properties securityProps;
 
     public ProducerPropertiesBuilder withBoostrapServers(String boostrapServers) {
-        this.bootsrapServers = boostrapServers;
+        this.bootstrapServers = boostrapServers;
         return this;
     }
 
@@ -68,10 +68,10 @@ public class ProducerPropertiesBuilder {
 
     public Properties build() throws RemotingKafkaConfigurationException {
         Properties props = (securityProps == null) ? new Properties() : securityProps;
-        if (bootsrapServers == null) {
+        if (bootstrapServers == null) {
             throw new RemotingKafkaConfigurationException("Please provide Kafka producer bootstrap servers");
         }
-        props.put(KafkaConfigs.BOOTSTRAP_SERVERS, bootsrapServers);
+        props.put(KafkaConfigs.BOOTSTRAP_SERVERS, bootstrapServers);
         if (acks != null) {
             props.put(KafkaConfigs.ACKS, acks.toString());
         }
