@@ -42,6 +42,12 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
     private String sslTruststoreCredentialsId;
     private String sslKeystoreCredentialsId;
     private String sslKeyCredentialsId;
+    private String kubernetesUrl;
+    private String kubernetesCertificate;
+    private String kubernetesCredentialsId;
+    private boolean kubernetesSkipTlsVerify;
+    private String kubernetesNamespace;
+
 
     public GlobalKafkaConfiguration() {
         load();
@@ -211,6 +217,30 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
         }
     }
 
+    @RequirePOST
+    public FormValidation doTestKubernetesConnection(
+        @QueryParameter String serverUrl,
+        @QueryParameter String credentialsId,
+        @QueryParameter String serverCertificate,
+        @QueryParameter boolean skipTlsVerify,
+        @QueryParameter String namespace
+    ) {
+        // TODO: Test K8s connection
+        return FormValidation.ok("Success");
+    }
+
+    @RequirePOST
+    public FormValidation doStartKafkaOnKubernetes(
+        @QueryParameter String serverUrl,
+        @QueryParameter String credentialsId,
+        @QueryParameter String serverCertificate,
+        @QueryParameter boolean skipTlsVerify,
+        @QueryParameter String namespace
+    ) {
+        // TODO: Use K8s client to launch Zookeeper and Kafka pods
+        return FormValidation.ok("Success");
+    }
+
     @Override
     public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
         this.brokerURL = formData.getString("brokerURL");
@@ -290,6 +320,20 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
         boolean isAdminOrNullItem = (item != null || Jenkins.get().hasPermission(Jenkins.ADMINISTER));
         if (isAdminOrNullItem && checkedResult.equals(FormValidation.ok())) {
             this.sslKeyCredentialsId = value;
+        }
+        return checkedResult;
+    }
+
+    @RequirePOST
+    public ListBoxModel doFillKubernetesCredentialsIdItems(@AncestorInPath Item item, @QueryParameter String credentialsId) {
+        return fillCredentialsIdItems(item, credentialsId);
+    }
+
+    public FormValidation doCheckKubernetesCredentialsId(@AncestorInPath Item item, @QueryParameter String value) {
+        FormValidation checkedResult = checkCredentialsId(item, value);
+        boolean isAdminOrNullItem = (item != null || Jenkins.get().hasPermission(Jenkins.ADMINISTER));
+        if (isAdminOrNullItem && checkedResult.equals(FormValidation.ok())) {
+            this.kubernetesCredentialsId = value;
         }
         return checkedResult;
     }
