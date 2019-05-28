@@ -49,6 +49,8 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
     private String sslTruststoreCredentialsId;
     private String sslKeystoreCredentialsId;
     private String sslKeyCredentialsId;
+
+    private boolean useKubernetes;
     private String kubernetesUrl;
     private String kubernetesCertificate;
     private String kubernetesCredentialsId;
