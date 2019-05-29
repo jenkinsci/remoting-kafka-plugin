@@ -19,7 +19,11 @@ import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
+<<<<<<< HEAD
 import org.apache.http.client.utils.URIBuilder;
+=======
+import org.csanchez.jenkins.plugins.kubernetes.KubernetesFactoryAdapter;
+>>>>>>> [JENKINS-57667] Implement testing K8s connection method
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.QueryParameter;
