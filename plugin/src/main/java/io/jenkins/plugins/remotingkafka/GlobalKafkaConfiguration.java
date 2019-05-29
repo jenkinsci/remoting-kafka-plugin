@@ -7,15 +7,19 @@ import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredenti
 import com.cloudbees.plugins.credentials.domains.SchemeRequirement;
 import com.cloudbees.plugins.credentials.matchers.IdMatcher;
 import hudson.Extension;
+import hudson.Util;
 import hudson.model.Item;
 import hudson.security.ACL;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.jenkins.plugins.remotingkafka.exception.RemotingKafkaConfigurationException;
 import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
+import org.csanchez.jenkins.plugins.kubernetes.KubernetesFactoryAdapter;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.QueryParameter;
@@ -29,10 +33,13 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @Extension
 @Symbol("kafka")
 public class GlobalKafkaConfiguration extends GlobalConfiguration {
+    private static final Logger LOGGER = Logger.getLogger(GlobalKafkaConfiguration.class.getName());
     public static final SchemeRequirement KAFKA_SCHEME = new SchemeRequirement("kafka");
 
     private String brokerURL;
@@ -220,23 +227,37 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
 
     @RequirePOST
     public FormValidation doTestKubernetesConnection(
-        @QueryParameter String serverUrl,
-        @QueryParameter String credentialsId,
-        @QueryParameter String serverCertificate,
-        @QueryParameter boolean skipTlsVerify,
-        @QueryParameter String namespace
+            @QueryParameter("kubernetesUrl") String serverUrl,
+            @QueryParameter("kubernetesCredentialsId") String credentialsId,
+            @QueryParameter("kubernetesCertificate") String serverCertificate,
+            @QueryParameter("kubernetesSkipTlsVerify") boolean skipTlsVerify,
+            @QueryParameter("kubernetesNamespace") String namespace
     ) {
-        // TODO: Test K8s connection
-        return FormValidation.ok("Success");
+        Jenkins.get().checkPermission(Jenkins.ADMINISTER);
+
+        try (KubernetesClient client = new KubernetesFactoryAdapter(serverUrl, namespace,
+                Util.fixEmpty(serverCertificate), Util.fixEmpty(credentialsId), skipTlsVerify
+        ).createClient()) {
+            client.pods().list();
+            return FormValidation.ok("Success");
+        } catch (KubernetesClientException e) {
+            LOGGER.log(Level.FINE, String.format("Error testing Kubernetes connection %s", serverUrl), e);
+            return FormValidation.error("Error %s: %s", serverUrl, e.getCause() == null
+                    ? e.getMessage()
+                    : String.format("%s: %s", e.getCause().getClass().getName(), e.getCause().getMessage()));
+        } catch (Exception e) {
+            LOGGER.log(Level.FINE, String.format("Error testing Kubernetes connection %s", serverUrl), e);
+            return FormValidation.error("Error %s: %s", serverUrl, e.getMessage());
+        }
     }
 
     @RequirePOST
     public FormValidation doStartKafkaOnKubernetes(
-        @QueryParameter String serverUrl,
-        @QueryParameter String credentialsId,
-        @QueryParameter String serverCertificate,
-        @QueryParameter boolean skipTlsVerify,
-        @QueryParameter String namespace
+            @QueryParameter("kubernetesUrl") String serverUrl,
+            @QueryParameter("kubernetesCredentialsId") String credentialsId,
+            @QueryParameter("kubernetesCertificate") String serverCertificate,
+            @QueryParameter("kubernetesSkipTlsVerify") boolean skipTlsVerify,
+            @QueryParameter("kubernetesNamespace") String namespace
     ) {
         // TODO: Use K8s client to launch Zookeeper and Kafka pods
         return FormValidation.ok("Success");
