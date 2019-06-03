@@ -58,7 +58,8 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
     private String sslKeyCredentialsId;
 
     private boolean useKubernetes;
-    private String kubernetesUrl;
+    private String kubernetesIp;
+    private String kubernetesApiPort;
     private String kubernetesCertificate;
     private String kubernetesCredentialsId;
     private boolean kubernetesSkipTlsVerify;
@@ -252,7 +253,6 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
     ) {
         Jenkins.get().checkPermission(Jenkins.ADMINISTER);
 
-<<<<<<< HEAD
         try {
             String serverUrl = new URIBuilder()
                     .setHost(serverIp)
@@ -261,11 +261,6 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
             KubernetesClient client = new KubernetesFactoryAdapter(serverUrl, namespace,
                     Util.fixEmpty(serverCertificate), Util.fixEmpty(credentialsId), skipTlsVerify
             ).createClient();
-=======
-        try (KubernetesClient client = new KubernetesFactoryAdapter(serverUrl, namespace,
-                Util.fixEmpty(serverCertificate), Util.fixEmpty(credentialsId), skipTlsVerify
-        ).createClient()) {
->>>>>>> Extract KubernetesFactoryAdapter class and remove kubernetes-plugin dependency
             // Call Pod list API to ensure functionality
             client.pods().list();
             return FormValidation.ok("Success");
