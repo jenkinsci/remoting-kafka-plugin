@@ -20,10 +20,13 @@ import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 <<<<<<< HEAD
+<<<<<<< HEAD
 import org.apache.http.client.utils.URIBuilder;
 =======
 import org.csanchez.jenkins.plugins.kubernetes.KubernetesFactoryAdapter;
 >>>>>>> [JENKINS-57667] Implement testing K8s connection method
+=======
+>>>>>>> Extract KubernetesFactoryAdapter class and remove kubernetes-plugin dependency
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.QueryParameter;
@@ -249,6 +252,7 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
     ) {
         Jenkins.get().checkPermission(Jenkins.ADMINISTER);
 
+<<<<<<< HEAD
         try {
             String serverUrl = new URIBuilder()
                     .setHost(serverIp)
@@ -257,6 +261,11 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
             KubernetesClient client = new KubernetesFactoryAdapter(serverUrl, namespace,
                     Util.fixEmpty(serverCertificate), Util.fixEmpty(credentialsId), skipTlsVerify
             ).createClient();
+=======
+        try (KubernetesClient client = new KubernetesFactoryAdapter(serverUrl, namespace,
+                Util.fixEmpty(serverCertificate), Util.fixEmpty(credentialsId), skipTlsVerify
+        ).createClient()) {
+>>>>>>> Extract KubernetesFactoryAdapter class and remove kubernetes-plugin dependency
             // Call Pod list API to ensure functionality
             client.pods().list();
             return FormValidation.ok("Success");
