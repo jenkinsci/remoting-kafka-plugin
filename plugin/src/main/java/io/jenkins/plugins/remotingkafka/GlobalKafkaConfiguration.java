@@ -50,7 +50,8 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
     private String sslKeyCredentialsId;
 
     private boolean useKubernetes;
-    private String kubernetesUrl;
+    private String kubernetesIp;
+    private String kubernetesApiPort;
     private String kubernetesCertificate;
     private String kubernetesCredentialsId;
     private boolean kubernetesSkipTlsVerify;
@@ -226,7 +227,8 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
 
     @RequirePOST
     public FormValidation doTestKubernetesConnection(
-            @QueryParameter("kubernetesUrl") String serverUrl,
+            @QueryParameter("kubernetesIp") String serverIp,
+            @QueryParameter("kubernetesApiPort") String serverPort,
             @QueryParameter("kubernetesCredentialsId") String credentialsId,
             @QueryParameter("kubernetesCertificate") String serverCertificate,
             @QueryParameter("kubernetesSkipTlsVerify") boolean skipTlsVerify,
@@ -234,6 +236,7 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
     ) {
         Jenkins.get().checkPermission(Jenkins.ADMINISTER);
 
+        String serverUrl = serverIp + ":" + serverPort;
         try (KubernetesClient client = new KubernetesFactoryAdapter(serverUrl, namespace,
                 Util.fixEmpty(serverCertificate), Util.fixEmpty(credentialsId), skipTlsVerify
         ).createClient()) {
@@ -253,7 +256,8 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
 
     @RequirePOST
     public FormValidation doStartKafkaOnKubernetes(
-            @QueryParameter("kubernetesUrl") String serverUrl,
+            @QueryParameter("kubernetesIp") String serverIp,
+            @QueryParameter("kubernetesApiPort") String serverPort,
             @QueryParameter("kubernetesCredentialsId") String credentialsId,
             @QueryParameter("kubernetesCertificate") String serverCertificate,
             @QueryParameter("kubernetesSkipTlsVerify") boolean skipTlsVerify,

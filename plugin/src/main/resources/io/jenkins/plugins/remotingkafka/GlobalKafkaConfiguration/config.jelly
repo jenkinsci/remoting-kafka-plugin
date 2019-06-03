@@ -29,7 +29,10 @@
             </f:entry>
         </f:optionalBlock>
         <f:optionalBlock inline="true" name="useKubernetes" title="Use Kubernetes" field="useKubernetes">
-            <f:entry title="${%Kubernetes URL}" field="kubernetesUrl">
+            <f:entry title="${%Kubernetes IP}" field="kubernetesIp">
+                <f:textbox/>
+            </f:entry>
+            <f:entry title="${%Kubernetes API Port}" field="kubernetesApiPort">
                 <f:textbox/>
             </f:entry>
             <f:entry title="${%Kubernetes server certificate key}" field="kubernetesCertificate">
@@ -47,11 +50,11 @@
             <f:validateButton
                     title="${%Test Kubernetes Connection}" progress="${%Testing...}"
                     method="testKubernetesConnection"
-                    with="kubernetesUrl,kubernetesCredentialsId,kubernetesCertificate,kubernetesSkipTlsVerify,kubernetesNamespace" />
+                    with="kubernetesIp,kubernetesApiPort,kubernetesCredentialsId,kubernetesCertificate,kubernetesSkipTlsVerify,kubernetesNamespace" />
             <f:validateButton
                     title="${%Start Kafka on Kubernetes}" progress="${%Starting...}"
                     method="startKafkaOnKubernetes"
-                    with="kubernetesUrl,kubernetesCredentialsId,kubernetesCertificate,kubernetesSkipTlsVerify,kubernetesNamespace" />
+                    with="kubernetesIp,kubernetesApiPort,kubernetesCredentialsId,kubernetesCertificate,kubernetesSkipTlsVerify,kubernetesNamespace" />
         </f:optionalBlock>
     </f:section>
 </j:jelly>
