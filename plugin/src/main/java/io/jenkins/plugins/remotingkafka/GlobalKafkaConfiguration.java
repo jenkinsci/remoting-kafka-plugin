@@ -19,7 +19,6 @@ import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
-import org.csanchez.jenkins.plugins.kubernetes.KubernetesFactoryAdapter;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.QueryParameter;
@@ -238,6 +237,7 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
         try (KubernetesClient client = new KubernetesFactoryAdapter(serverUrl, namespace,
                 Util.fixEmpty(serverCertificate), Util.fixEmpty(credentialsId), skipTlsVerify
         ).createClient()) {
+            // Call Pod list API to ensure functionality
             client.pods().list();
             return FormValidation.ok("Success");
         } catch (KubernetesClientException e) {
