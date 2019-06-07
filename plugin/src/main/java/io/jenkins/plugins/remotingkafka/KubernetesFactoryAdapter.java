@@ -28,6 +28,7 @@ import java.security.*;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -140,13 +141,15 @@ public class KubernetesFactoryAdapter {
             builder.withCaCertData(Base64.encodeBase64String(caCertData.getBytes(UTF_8)));
         }
 
-        builder = builder.withRequestTimeout(readTimeout * 1000).withConnectionTimeout(connectTimeout * 1000);
+        builder = builder
+                .withRequestTimeout((int) TimeUnit.SECONDS.toMillis(readTimeout))
+                .withConnectionTimeout((int) TimeUnit.SECONDS.toMillis(connectTimeout));
         builder.withMaxConcurrentRequestsPerHost(maxRequestsPerHost);
 
-        if (!StringUtils.isBlank(namespace)) {
-            builder.withNamespace(namespace);
-        } else if (StringUtils.isBlank(builder.getNamespace())) {
+        if (StringUtils.isBlank(namespace)) {
             builder.withNamespace("default");
+        } else if (StringUtils.isBlank(builder.getNamespace())) {
+            builder.withNamespace(namespace);
         }
 
         LOGGER.log(FINE, "Creating Kubernetes client: {0}", this.toString());

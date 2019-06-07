@@ -19,6 +19,7 @@ import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.client.utils.URIBuilder;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.QueryParameter;
@@ -236,21 +237,25 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
     ) {
         Jenkins.get().checkPermission(Jenkins.ADMINISTER);
 
-        String serverUrl = serverIp + ":" + serverPort;
-        try (KubernetesClient client = new KubernetesFactoryAdapter(serverUrl, namespace,
-                Util.fixEmpty(serverCertificate), Util.fixEmpty(credentialsId), skipTlsVerify
-        ).createClient()) {
+        try {
+            String serverUrl = new URIBuilder()
+                    .setHost(serverIp)
+                    .setPort(Integer.parseInt(serverPort))
+                    .toString();
+            KubernetesClient client = new KubernetesFactoryAdapter(serverUrl, namespace,
+                    Util.fixEmpty(serverCertificate), Util.fixEmpty(credentialsId), skipTlsVerify
+            ).createClient();
             // Call Pod list API to ensure functionality
             client.pods().list();
             return FormValidation.ok("Success");
         } catch (KubernetesClientException e) {
-            LOGGER.log(Level.FINE, String.format("Error testing Kubernetes connection %s", serverUrl), e);
-            return FormValidation.error("Error %s: %s", serverUrl, e.getCause() == null
+            LOGGER.log(Level.FINE, "Error testing Kubernetes connection", e);
+            return FormValidation.error("Error: %s", e.getCause() == null
                     ? e.getMessage()
                     : String.format("%s: %s", e.getCause().getClass().getName(), e.getCause().getMessage()));
         } catch (Exception e) {
-            LOGGER.log(Level.FINE, String.format("Error testing Kubernetes connection %s", serverUrl), e);
-            return FormValidation.error("Error %s: %s", serverUrl, e.getMessage());
+            LOGGER.log(Level.FINE, "Error testing Kubernetes connection", e);
+            return FormValidation.error("Error: %s", e.getMessage());
         }
     }
 
