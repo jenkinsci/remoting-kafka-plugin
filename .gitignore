@@ -44,3 +44,6 @@ work/
 
 # ssl certs
 certs/
+
+# OS files
+.DS_Store
