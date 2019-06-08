@@ -342,8 +342,11 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
         // TODO: Use K8s client to launch Zookeeper and Kafka pods
         Jenkins.get().checkPermission(Jenkins.ADMINISTER);
 
-        String serverUrl = serverIp + ":" + serverPort;
         try {
+            String serverUrl = new URIBuilder()
+                    .setHost(serverIp)
+                    .setPort(Integer.parseInt(serverPort))
+                    .toString();
             KubernetesClient client = new KubernetesFactoryAdapter(serverUrl, namespace,
                     Util.fixEmpty(serverCertificate), Util.fixEmpty(credentialsId), skipTlsVerify
             ).createClient();
@@ -399,7 +402,7 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
             // Set Zookeeper and Broker URL
             GlobalKafkaConfiguration.get().setZookeeperURL(serverIp + ":" + zookeeperPort);
             GlobalKafkaConfiguration.get().setBrokerURL(serverIp + ":" + kafkaPort);
-            return FormValidation.ok("Success");
+            return FormValidation.ok(String.format("Success. Zookeeper: %s:%s and Kafka: %s:%s", serverIp, zookeeperPort, serverIp, kafkaPort));
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error", e);
             return FormValidation.error("Error: %s", e.getCause() == null
