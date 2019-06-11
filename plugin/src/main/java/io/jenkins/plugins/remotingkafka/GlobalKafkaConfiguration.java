@@ -64,15 +64,6 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
     private boolean kubernetesSkipTlsVerify;
     private String kubernetesNamespace;
 
-
-    private boolean useKubernetes;
-    private String kubernetesIp;
-    private String kubernetesApiPort;
-    private String kubernetesCertificate;
-    private String kubernetesCredentialsId;
-    private boolean kubernetesSkipTlsVerify;
-    private String kubernetesNamespace;
-
     public GlobalKafkaConfiguration() {
         load();
     }
