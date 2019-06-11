@@ -52,7 +52,7 @@
                     method="testKubernetesConnection"
                     with="kubernetesIp,kubernetesApiPort,kubernetesCredentialsId,kubernetesCertificate,kubernetesSkipTlsVerify,kubernetesNamespace" />
             <f:validateButton
-                    title="${%Start Kafka on Kubernetes}" progress="${%Starting...}"
+                    title="${%Start Kafka on Kubernetes}" progress="${%Starting... It may take a while to download images if this is the first time}"
                     method="startKafkaOnKubernetes"
                     with="kubernetesIp,kubernetesApiPort,kubernetesCredentialsId,kubernetesCertificate,kubernetesSkipTlsVerify,kubernetesNamespace" />
         </f:optionalBlock>

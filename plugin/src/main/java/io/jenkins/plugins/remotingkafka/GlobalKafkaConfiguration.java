@@ -12,6 +12,10 @@ import hudson.model.Item;
 import hudson.security.ACL;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
+import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.EnvVar;
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.jenkins.plugins.remotingkafka.exception.RemotingKafkaConfigurationException;
@@ -120,6 +124,62 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
 
     public void setSslKeyCredentialsId(String sslKeyCredentialsId) {
         this.sslKeyCredentialsId = sslKeyCredentialsId;
+    }
+
+    public boolean getUseKubernetes() {
+        return useKubernetes;
+    }
+
+    public void setUseKubernetes(boolean useKubernetes) {
+        this.useKubernetes = useKubernetes;
+    }
+
+    public String getKubernetesIp() {
+        return kubernetesIp;
+    }
+
+    public void setKubernetesIp(String kubernetesIp) {
+        this.kubernetesIp = kubernetesIp;
+    }
+
+    public String getKubernetesApiPort() {
+        return kubernetesApiPort;
+    }
+
+    public void setKubernetesApiPort(String kubernetesApiPort) {
+        this.kubernetesApiPort = kubernetesApiPort;
+    }
+
+    public String getKubernetesCertificate() {
+        return kubernetesCertificate;
+    }
+
+    public void setKubernetesCertificate(String kubernetesCertificate) {
+        this.kubernetesCertificate = kubernetesCertificate;
+    }
+
+    public String getKubernetesCredentialsId() {
+        return kubernetesCredentialsId;
+    }
+
+    public void setKubernetesCredentialsId(String kubernetesCredentialsId) {
+        this.kubernetesCredentialsId = kubernetesCredentialsId;
+    }
+
+    public boolean getKubernetesSkipTlsVerify() {
+        return kubernetesSkipTlsVerify;
+    }
+
+    public void setKubernetesSkipTlsVerify(boolean kubernetesSkipTlsVerify) {
+        this.kubernetesSkipTlsVerify = kubernetesSkipTlsVerify;
+    }
+
+    public String getKubernetesNamespace() {
+        return kubernetesNamespace;
+    }
+
+    public void setKubernetesNamespace(String kubernetesNamespace) {
+        this.kubernetesNamespace = kubernetesNamespace;
     }
 
     public String getKafkaUsername() throws RemotingKafkaConfigurationException {
@@ -268,8 +328,72 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
             @QueryParameter("kubernetesSkipTlsVerify") boolean skipTlsVerify,
             @QueryParameter("kubernetesNamespace") String namespace
     ) {
-        // TODO: Use K8s client to launch Zookeeper and Kafka pods
-        return FormValidation.ok("Success");
+        Jenkins.get().checkPermission(Jenkins.ADMINISTER);
+
+        String serverUrl = serverIp + ":" + serverPort;
+        try {
+            KubernetesClient client = new KubernetesFactoryAdapter(serverUrl, namespace,
+                    Util.fixEmpty(serverCertificate), Util.fixEmpty(credentialsId), skipTlsVerify
+            ).createClient();
+            Class clazz = GlobalKafkaConfiguration.class;
+            client.load(clazz.getResourceAsStream("kubernetes/zookeeper.yaml")).createOrReplace();
+            LOGGER.info("Starting Zookeeper");
+            client.load(clazz.getResourceAsStream("kubernetes/kafka-service.yaml")).createOrReplace();
+            LOGGER.info("Starting Kafka Services");
+            Integer zookeeperPort = KubernetesUtils.getFirstNodePortByServiceName(client, "zookeeper-svc");
+            Integer kafkaPort = KubernetesUtils.getFirstNodePortByServiceName(client, "kafka-svc");
+
+            // Set Kafka advertised.listeners property
+            List<HasMetadata> kafkaStatefulSetResources =
+                    client.load(clazz.getResourceAsStream("kubernetes/kafka-statefulset.yaml")).get();
+            StatefulSet kafkaStatefulSet = (StatefulSet) kafkaStatefulSetResources.
+                    stream().
+                    filter(res -> res.getKind().equals("StatefulSet") && res.getMetadata().getName().equals("kafka")).
+                    findFirst().
+                    orElse(null);
+            if (kafkaStatefulSet == null)
+                throw new RemotingKafkaConfigurationException("Couldn't find StatefulSet named kafka in YAML configuration");
+            Container kafkaContainer = kafkaStatefulSet.
+                    getSpec().
+                    getTemplate().
+                    getSpec().
+                    getContainers().
+                    stream().
+                    filter(con -> con.getName().equals("kafka")).
+                    findFirst().
+                    orElse(null);
+            if (kafkaContainer == null)
+                throw new RemotingKafkaConfigurationException("Couldn't find Container named kafka in template specification");
+            kafkaContainer.getEnv().add(new EnvVar(
+                    "KAFKA_ADVERTISED_LISTENERS",
+                    String.format("EXTERNAL://%s:%s", serverIp, kafkaPort),
+                    null
+            ));
+            client.resourceList(kafkaStatefulSetResources).createOrReplace();
+            LOGGER.info("Starting Kafka StatefulSet");
+
+            // Probe for Kafka readiness
+            while (true) {
+                try {
+                    testConnection(serverIp, kafkaPort);
+                    break;
+                } catch (IOException e) {
+                    LOGGER.info(String.format("Waiting for Kafka connection at %s:%s", serverIp, kafkaPort));
+                }
+                Thread.sleep(2000);
+            }
+            LOGGER.info("Zookeeper and Kafka started");
+
+            // Set Zookeeper and Broker URL
+            GlobalKafkaConfiguration.get().setZookeeperURL(serverIp + ":" + zookeeperPort);
+            GlobalKafkaConfiguration.get().setBrokerURL(serverIp + ":" + kafkaPort);
+            return FormValidation.ok("Success");
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error", e);
+            return FormValidation.error("Error: %s", e.getCause() == null
+                    ? e.getMessage()
+                    : String.format("%s: %s", e.getCause().getClass().getName(), e.getCause().getMessage()));
+        }
     }
 
     @Override
@@ -277,6 +401,13 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
         this.brokerURL = formData.getString("brokerURL");
         this.zookeeperURL = formData.getString("zookeeperURL");
         this.enableSSL = Boolean.valueOf(formData.getString("enableSSL"));
+
+        this.useKubernetes = Boolean.valueOf(formData.getString("useKubernetes"));
+        this.kubernetesIp = formData.getString("kubernetesIp");
+        this.kubernetesApiPort = formData.getString("kubernetesApiPort");
+        this.kubernetesCertificate = formData.getString("kubernetesCertificate");
+        this.kubernetesSkipTlsVerify = Boolean.valueOf(formData.getString("kubernetesSkipTlsVerify"));
+        this.kubernetesNamespace = formData.getString("kubernetesNamespace");
         save();
         return true;
     }
