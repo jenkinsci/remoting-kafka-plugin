@@ -7,15 +7,19 @@ import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredenti
 import com.cloudbees.plugins.credentials.domains.SchemeRequirement;
 import com.cloudbees.plugins.credentials.matchers.IdMatcher;
 import hudson.Extension;
+import hudson.Util;
 import hudson.model.Item;
 import hudson.security.ACL;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.jenkins.plugins.remotingkafka.exception.RemotingKafkaConfigurationException;
 import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.client.utils.URIBuilder;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.QueryParameter;
@@ -29,10 +33,13 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @Extension
 @Symbol("kafka")
 public class GlobalKafkaConfiguration extends GlobalConfiguration {
+    private static final Logger LOGGER = Logger.getLogger(GlobalKafkaConfiguration.class.getName());
     public static final SchemeRequirement KAFKA_SCHEME = new SchemeRequirement("kafka");
 
     private String brokerURL;
@@ -42,6 +49,14 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
     private String sslTruststoreCredentialsId;
     private String sslKeystoreCredentialsId;
     private String sslKeyCredentialsId;
+
+    private boolean useKubernetes;
+    private String kubernetesIp;
+    private String kubernetesApiPort;
+    private String kubernetesCertificate;
+    private String kubernetesCredentialsId;
+    private boolean kubernetesSkipTlsVerify;
+    private String kubernetesNamespace;
 
     public GlobalKafkaConfiguration() {
         load();
@@ -211,6 +226,52 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
         }
     }
 
+    @RequirePOST
+    public FormValidation doTestKubernetesConnection(
+            @QueryParameter("kubernetesIp") String serverIp,
+            @QueryParameter("kubernetesApiPort") String serverPort,
+            @QueryParameter("kubernetesCredentialsId") String credentialsId,
+            @QueryParameter("kubernetesCertificate") String serverCertificate,
+            @QueryParameter("kubernetesSkipTlsVerify") boolean skipTlsVerify,
+            @QueryParameter("kubernetesNamespace") String namespace
+    ) {
+        Jenkins.get().checkPermission(Jenkins.ADMINISTER);
+
+        try {
+            String serverUrl = new URIBuilder()
+                    .setHost(serverIp)
+                    .setPort(Integer.parseInt(serverPort))
+                    .toString();
+            KubernetesClient client = new KubernetesFactoryAdapter(serverUrl, namespace,
+                    Util.fixEmpty(serverCertificate), Util.fixEmpty(credentialsId), skipTlsVerify
+            ).createClient();
+            // Call Pod list API to ensure functionality
+            client.pods().list();
+            return FormValidation.ok("Success");
+        } catch (KubernetesClientException e) {
+            LOGGER.log(Level.FINE, "Error testing Kubernetes connection", e);
+            return FormValidation.error("Error: %s", e.getCause() == null
+                    ? e.getMessage()
+                    : String.format("%s: %s", e.getCause().getClass().getName(), e.getCause().getMessage()));
+        } catch (Exception e) {
+            LOGGER.log(Level.FINE, "Error testing Kubernetes connection", e);
+            return FormValidation.error("Error: %s", e.getMessage());
+        }
+    }
+
+    @RequirePOST
+    public FormValidation doStartKafkaOnKubernetes(
+            @QueryParameter("kubernetesIp") String serverIp,
+            @QueryParameter("kubernetesApiPort") String serverPort,
+            @QueryParameter("kubernetesCredentialsId") String credentialsId,
+            @QueryParameter("kubernetesCertificate") String serverCertificate,
+            @QueryParameter("kubernetesSkipTlsVerify") boolean skipTlsVerify,
+            @QueryParameter("kubernetesNamespace") String namespace
+    ) {
+        // TODO: Use K8s client to launch Zookeeper and Kafka pods
+        return FormValidation.ok("Success");
+    }
+
     @Override
     public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
         this.brokerURL = formData.getString("brokerURL");
@@ -290,6 +351,20 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
         boolean isAdminOrNullItem = (item != null || Jenkins.get().hasPermission(Jenkins.ADMINISTER));
         if (isAdminOrNullItem && checkedResult.equals(FormValidation.ok())) {
             this.sslKeyCredentialsId = value;
+        }
+        return checkedResult;
+    }
+
+    @RequirePOST
+    public ListBoxModel doFillKubernetesCredentialsIdItems(@AncestorInPath Item item, @QueryParameter String credentialsId) {
+        return fillCredentialsIdItems(item, credentialsId);
+    }
+
+    public FormValidation doCheckKubernetesCredentialsId(@AncestorInPath Item item, @QueryParameter String value) {
+        FormValidation checkedResult = checkCredentialsId(item, value);
+        boolean isAdminOrNullItem = (item != null || Jenkins.get().hasPermission(Jenkins.ADMINISTER));
+        if (isAdminOrNullItem && checkedResult.equals(FormValidation.ok())) {
+            this.kubernetesCredentialsId = value;
         }
         return checkedResult;
     }
