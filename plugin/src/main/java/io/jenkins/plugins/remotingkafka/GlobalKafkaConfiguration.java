@@ -34,6 +34,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.servlet.ServletException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.Socket;
 import java.util.Collections;
 import java.util.List;
@@ -330,7 +331,10 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
     ) {
         Jenkins.get().checkPermission(Jenkins.ADMINISTER);
 
-        try {
+        Class clazz = GlobalKafkaConfiguration.class;
+        try (InputStream zookeeperFile = clazz.getResourceAsStream("kubernetes/zookeeper.yaml");
+             InputStream kafkaServiceFile = clazz.getResourceAsStream("kubernetes/kafka-service.yaml");
+             InputStream kafkaStatefulSetFile = clazz.getResourceAsStream("kubernetes/kafka-statefulset.yaml")) {
             String serverUrl = new URIBuilder()
                     .setHost(serverIp)
                     .setPort(Integer.parseInt(serverPort))
@@ -338,17 +342,16 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
             KubernetesClient client = new KubernetesFactoryAdapter(serverUrl, namespace,
                     Util.fixEmpty(serverCertificate), Util.fixEmpty(credentialsId), skipTlsVerify
             ).createClient();
-            Class clazz = GlobalKafkaConfiguration.class;
-            client.load(clazz.getResourceAsStream("kubernetes/zookeeper.yaml")).createOrReplace();
+
+            client.load(zookeeperFile).createOrReplace();
             LOGGER.info("Starting Zookeeper");
-            client.load(clazz.getResourceAsStream("kubernetes/kafka-service.yaml")).createOrReplace();
+            client.load(kafkaServiceFile).createOrReplace();
             LOGGER.info("Starting Kafka Services");
             Integer zookeeperPort = KubernetesUtils.getFirstNodePortByServiceName(client, "zookeeper-svc");
             Integer kafkaPort = KubernetesUtils.getFirstNodePortByServiceName(client, "kafka-svc");
 
             // Set Kafka advertised.listeners property
-            List<HasMetadata> kafkaStatefulSetResources =
-                    client.load(clazz.getResourceAsStream("kubernetes/kafka-statefulset.yaml")).get();
+            List<HasMetadata> kafkaStatefulSetResources = client.load(kafkaStatefulSetFile).get();
             StatefulSet kafkaStatefulSet = (StatefulSet) kafkaStatefulSetResources.
                     stream().
                     filter(res -> res.getKind().equals("StatefulSet") && res.getMetadata().getName().equals("kafka")).
@@ -391,6 +394,8 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
             GlobalKafkaConfiguration.get().setZookeeperURL(serverIp + ":" + zookeeperPort);
             GlobalKafkaConfiguration.get().setBrokerURL(serverIp + ":" + kafkaPort);
             return FormValidation.ok(String.format("Success. Zookeeper: %s:%s and Kafka: %s:%s", serverIp, zookeeperPort, serverIp, kafkaPort));
+        } catch(RuntimeException e) {
+            throw e;
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error", e);
             return FormValidation.error("Error: %s", e.getCause() == null
