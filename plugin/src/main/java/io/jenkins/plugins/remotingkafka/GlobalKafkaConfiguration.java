@@ -36,8 +36,10 @@ import javax.servlet.ServletException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -299,10 +301,7 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
         Jenkins.get().checkPermission(Jenkins.ADMINISTER);
 
         try {
-            String serverUrl = new URIBuilder()
-                    .setHost(serverIp)
-                    .setPort(Integer.parseInt(serverPort))
-                    .toString();
+            String serverUrl = getURL(serverIp, Integer.parseInt(serverPort));
             KubernetesClient client = new KubernetesFactoryAdapter(serverUrl, namespace,
                     Util.fixEmpty(serverCertificate), Util.fixEmpty(credentialsId), skipTlsVerify
             ).createClient();
@@ -332,44 +331,40 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
         Jenkins.get().checkPermission(Jenkins.ADMINISTER);
 
         Class clazz = GlobalKafkaConfiguration.class;
-        try (InputStream zookeeperFile = clazz.getResourceAsStream("kubernetes/zookeeper.yaml");
-             InputStream kafkaServiceFile = clazz.getResourceAsStream("kubernetes/kafka-service.yaml");
-             InputStream kafkaStatefulSetFile = clazz.getResourceAsStream("kubernetes/kafka-statefulset.yaml")) {
-            String serverUrl = new URIBuilder()
-                    .setHost(serverIp)
-                    .setPort(Integer.parseInt(serverPort))
-                    .toString();
+        try (InputStream zookeeperFile = clazz.getResourceAsStream(Paths.get("kubernetes", "zookeeper.yaml").toString());
+             InputStream kafkaServiceFile = clazz.getResourceAsStream(Paths.get("kubernetes", "kafka-service.yaml").toString());
+             InputStream kafkaStatefulSetFile = clazz.getResourceAsStream(Paths.get("kubernetes", "kafka-statefulset.yaml").toString())) {
+            String serverUrl = getURL(serverIp, Integer.parseInt(serverPort));
             KubernetesClient client = new KubernetesFactoryAdapter(serverUrl, namespace,
                     Util.fixEmpty(serverCertificate), Util.fixEmpty(credentialsId), skipTlsVerify
             ).createClient();
+            KubernetesQuery kubernetesQuery = new KubernetesQuery(client);
 
             client.load(zookeeperFile).createOrReplace();
             LOGGER.info("Starting Zookeeper");
             client.load(kafkaServiceFile).createOrReplace();
             LOGGER.info("Starting Kafka Services");
-            Integer zookeeperPort = KubernetesUtils.getFirstNodePortByServiceName(client, "zookeeper-svc");
-            Integer kafkaPort = KubernetesUtils.getFirstNodePortByServiceName(client, "kafka-svc");
+            Integer zookeeperPort = kubernetesQuery.getFirstNodePortByServiceName("zookeeper-svc");
+            Integer kafkaPort = kubernetesQuery.getFirstNodePortByServiceName("kafka-svc");
+            if (zookeeperPort == null || kafkaPort == null)
+                throw new RemotingKafkaConfigurationException("Zookeeper NodePort or Kafka NodePort not found");
 
             // Set Kafka advertised.listeners property
             List<HasMetadata> kafkaStatefulSetResources = client.load(kafkaStatefulSetFile).get();
-            StatefulSet kafkaStatefulSet = (StatefulSet) kafkaStatefulSetResources.
-                    stream().
-                    filter(res -> res.getKind().equals("StatefulSet") && res.getMetadata().getName().equals("kafka")).
-                    findFirst().
-                    orElse(null);
-            if (kafkaStatefulSet == null)
-                throw new RemotingKafkaConfigurationException("Couldn't find StatefulSet named kafka in YAML configuration");
-            Container kafkaContainer = kafkaStatefulSet.
-                    getSpec().
-                    getTemplate().
-                    getSpec().
-                    getContainers().
-                    stream().
-                    filter(con -> con.getName().equals("kafka")).
-                    findFirst().
-                    orElse(null);
-            if (kafkaContainer == null)
-                throw new RemotingKafkaConfigurationException("Couldn't find Container named kafka in template specification");
+            StatefulSet kafkaStatefulSet = (StatefulSet) kafkaStatefulSetResources
+                    .stream()
+                    .filter(res -> res.getKind().equals("StatefulSet") && res.getMetadata().getName().equals("kafka"))
+                    .findFirst()
+                    .orElseThrow(() -> new RemotingKafkaConfigurationException("Couldn't find StatefulSet named kafka in YAML configuration"));
+            Container kafkaContainer = kafkaStatefulSet
+                    .getSpec()
+                    .getTemplate()
+                    .getSpec()
+                    .getContainers()
+                    .stream()
+                    .filter(con -> con.getName().equals("kafka"))
+                    .findFirst()
+                    .orElseThrow(() -> new RemotingKafkaConfigurationException("Couldn't find Container named kafka in template specification"));
             kafkaContainer.getEnv().add(new EnvVar(
                     "KAFKA_ADVERTISED_LISTENERS",
                     String.format("EXTERNAL://%s:%s", serverIp, kafkaPort),
@@ -386,15 +381,15 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
                 } catch (IOException e) {
                     LOGGER.info(String.format("Waiting for Kafka connection at %s:%s", serverIp, kafkaPort));
                 }
-                Thread.sleep(2000);
+                Thread.sleep(TimeUnit.SECONDS.toMillis(1));
             }
             LOGGER.info("Zookeeper and Kafka started");
 
             // Set Zookeeper and Broker URL
-            GlobalKafkaConfiguration.get().setZookeeperURL(serverIp + ":" + zookeeperPort);
-            GlobalKafkaConfiguration.get().setBrokerURL(serverIp + ":" + kafkaPort);
+            GlobalKafkaConfiguration.get().setZookeeperURL(getURL(serverIp, zookeeperPort));
+            GlobalKafkaConfiguration.get().setBrokerURL(getURL(serverIp, kafkaPort));
             return FormValidation.ok(String.format("Success. Zookeeper: %s:%s and Kafka: %s:%s", serverIp, zookeeperPort, serverIp, kafkaPort));
-        } catch(RuntimeException e) {
+        } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error", e);
@@ -545,5 +540,12 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
                         CredentialsMatchers.always()
                 )
                 .includeCurrentValue(credentialsId);
+    }
+
+    private static String getURL(String host, int port) {
+        return new URIBuilder()
+            .setHost(host)
+            .setPort(port)
+            .toString();
     }
 }

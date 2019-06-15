@@ -4,7 +4,7 @@ metadata:
   name: kafka-svc
 spec:
   ports:
-    - port: 9094
+    - port: 9092
       name: client
   selector:
     app: kafka
@@ -16,7 +16,7 @@ metadata:
   name: kafka-svc-hs # Headless service for Kafka servers to communicate with each other
 spec:
   ports:
-    - port: 9092
+    - port: 9094
       name: peer
   clusterIP: None
   selector:
