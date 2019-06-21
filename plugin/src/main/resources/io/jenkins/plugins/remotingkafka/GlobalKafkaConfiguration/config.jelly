@@ -3,13 +3,13 @@
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:c="/lib/credentials">
     <f:section title="${%Remoting Kafka Configuration}">
         <f:entry field="zookeeperURL" title="${%Zookeeper URL}">
-            <f:textbox/>
+            <f:textbox clazz="zookeeper-textbox" />
         </f:entry>
         <f:validateButton
                 title="${%Test Zookeeper Connection}" progress="${%Testing...}"
                 method="testZookeeperConnection" with="zookeeperURL" />
         <f:entry field="brokerURL" title="${%Kafka Broker URL}">
-            <f:textbox/>
+            <f:textbox clazz="kafka-textbox" />
         </f:entry>
         <f:validateButton
                 title="${%Test Broker Connection}" progress="${%Testing...}"
@@ -52,9 +52,31 @@
                     method="testKubernetesConnection"
                     with="kubernetesIp,kubernetesApiPort,kubernetesCredentialsId,kubernetesCertificate,kubernetesSkipTlsVerify,kubernetesNamespace" />
             <f:validateButton
-                    title="${%Start Kafka on Kubernetes}" progress="${%Starting...}"
+                    clazz="start-kafka-button"
+                    title="${%Start Kafka on Kubernetes}"
+                    progress="${%Starting... It may take a while to download images if this is the first time}"
                     method="startKafkaOnKubernetes"
                     with="kubernetesIp,kubernetesApiPort,kubernetesCredentialsId,kubernetesCertificate,kubernetesSkipTlsVerify,kubernetesNamespace" />
         </f:optionalBlock>
     </f:section>
+    <script>
+        var resultElement = document.getElementsByClassName('start-kafka-button').item(0)
+                .parentElement.parentElement.lastElementChild;
+
+        function callback(mutationsList) {
+            for (var mutation of mutationsList) {
+                if (mutation.type === 'childList') {
+                    var result = resultElement.firstElementChild.textContent;
+                    if (result.startsWith("Success")) {
+                        var matches = result.match(/Success. Zookeeper: (.+) and Kafka: (.+)/);
+                        document.getElementsByClassName('zookeeper-textbox').item(0).value = matches[1];
+                        document.getElementsByClassName('kafka-textbox').item(0).value = matches[2];
+                    }
+                }
+            }
+        }
+
+        var observer = new MutationObserver(callback);
+        observer.observe(resultElement, {childList: true});
+    </script>
 </j:jelly>
