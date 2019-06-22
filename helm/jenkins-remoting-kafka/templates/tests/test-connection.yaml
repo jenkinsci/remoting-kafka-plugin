@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "jenkins-remoting-kafka.fullname" . }}-test-connection"
+  labels:
+{{ include "jenkins-remoting-kafka.labels" . | indent 4 }}
+  annotations:
+    "helm.sh/hook": test-success
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args:  ['{{ include "jenkins-remoting-kafka.fullname" . }}:8080']
+  restartPolicy: Never

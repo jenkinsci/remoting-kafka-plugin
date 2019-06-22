@@ -1,0 +1,14 @@
+apiVersion: v1
+description: Jenkins with Remoting over Kafka plugin. This also starts Zookeeper and Kafka cluster.
+name: jenkins-remoting-kafka
+version: 0.1.0
+home: https://github.com/jenkinsci/remoting-kafka-plugin
+sources:
+- https://github.com/jenkinsci/jenkins
+- https://github.com/jenkinsci/configuration-as-code-plugin
+- https://github.com/jenkinsci/remoting-kafka-plugin
+maintainers:
+- name: longngn
+  email: long@longngn.com
+icon: https://wiki.jenkins-ci.org/download/attachments/2916393/logo.png
+appVersion: lts

@@ -1,0 +1,50 @@
+#################################################################################
+######    INFO: This NOTES.txt file is copied from stable/jenkins chart     #####
+#################################################################################
+
+1. Get your '{{ .Values.jenkins.master.adminUser }}' user password by running:
+  printf $(kubectl get secret --namespace {{ .Release.Namespace }} {{ include "call-nested" (list . "jenkins" "jenkins.fullname") }} -o jsonpath="{.data.jenkins-admin-password}" | base64 --decode);echo
+
+{{- if .Values.jenkins.master.ingress.hostName }}
+
+2. Visit http://{{ .Values.jenkins.master.ingress.hostName }}
+{{- else }}
+2. Get the Jenkins URL to visit by running these commands in the same shell:
+{{- if contains "NodePort" .Values.jenkins.master.serviceType }}
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "call-nested" (list . "jenkins" "jenkins.fullname") }})
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo http://$NODE_IP:$NODE_PORT/login
+
+{{- else if contains "LoadBalancer" .Values.jenkins.master.serviceType }}
+  NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+        You can watch the status of by running 'kubectl get svc --namespace {{ .Release.Namespace }} -w {{ template "jenkins-remoting-kafka.fullname" . }}'
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ template "jenkins-remoting-kafka.fullname" . }} --template "{{ "{{ range (index .status.loadBalancer.ingress 0) }}{{ . }}{{ end }}" }}")
+  echo http://$SERVICE_IP:{{ .Values.jenkins.master.servicePort }}/login
+
+{{- else if contains "ClusterIP"  .Values.jenkins.master.serviceType }}
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/component={{ .Values.jenkins.master.componentName }}" -l "app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  echo http://127.0.0.1:{{ .Values.jenkins.master.servicePort }}
+  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME {{ .Values.jenkins.master.servicePort }}:{{ .Values.jenkins.master.servicePort }}
+
+{{- end }}
+{{- end }}
+
+3. Login with the password from step 1 and the username: {{ .Values.jenkins.master.adminUser }}
+{{ if .Values.jenkins.master.JCasC.enabled }}
+4. Use Jenkins Configuration as Code by specifying configScripts in your values.yaml file, see documentation: http://{{ .Values.jenkins.master.ingress.hostName }}/configuration-as-code and examples: https://github.com/jenkinsci/configuration-as-code-plugin/tree/master/demos
+{{- end }}
+
+For more information on running Jenkins on Kubernetes, visit:
+https://cloud.google.com/solutions/jenkins-on-container-engine
+{{- if .Values.jenkins.master.JCasC.enabled }}
+For more information about Jenkins Configuration as Code, visit:
+https://jenkins.io/projects/jcasc/
+{{- end }}
+
+{{- if .Values.jenkins.persistence.enabled }}
+{{- else }}
+#################################################################################
+######   WARNING: Persistence is disabled!!! You will lose your data when   #####
+######            the Jenkins pod is terminated.                            #####
+#################################################################################
+{{- end }}

@@ -47,3 +47,6 @@ certs/
 
 # OS files
 .DS_Store 
+
+# Helm
+helm/**/*.tgz
