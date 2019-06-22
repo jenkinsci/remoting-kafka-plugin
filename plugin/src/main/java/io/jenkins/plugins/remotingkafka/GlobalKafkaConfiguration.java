@@ -381,7 +381,7 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
                 } catch (IOException e) {
                     LOGGER.info(String.format("Waiting for Kafka connection at %s:%s", serverIp, kafkaPort));
                 }
-                Thread.sleep(TimeUnit.SECONDS.toMillis(1));
+                TimeUnit.SECONDS.sleep(1);
             }
             LOGGER.info("Zookeeper and Kafka started");
 
