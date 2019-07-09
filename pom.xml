@@ -59,5 +59,10 @@
             <name>Pham Vu Tuan</name>
             <email>phamvutuan10@gmail.com</email>
         </developer>
+        <developer>
+            <id>longngn</id>
+            <name>Nguyen Le Vu Long</name>
+            <email>vulongvn98@gmail.com</email>
+        </developer>
     </developers>
 </project>
