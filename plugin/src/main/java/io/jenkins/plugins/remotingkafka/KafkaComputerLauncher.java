@@ -9,6 +9,8 @@ import hudson.remoting.*;
 import hudson.slaves.ComputerLauncher;
 import hudson.slaves.SlaveComputer;
 import hudson.util.FormValidation;
+import io.fabric8.kubernetes.api.model.*;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.jenkins.plugins.remotingkafka.builder.KafkaTransportBuilder;
 import io.jenkins.plugins.remotingkafka.builder.SecurityPropertiesBuilder;
 import io.jenkins.plugins.remotingkafka.commandtransport.KafkaClassicCommandTransport;
@@ -38,6 +40,8 @@ import java.util.logging.Logger;
 public class KafkaComputerLauncher extends ComputerLauncher {
     private static final Logger LOGGER = Logger.getLogger(KafkaComputerLauncher.class.getName());
     private static final long DEFAULT_TIMEOUT = 60000;
+    private static final String K8S_AGENT_CONTAINER_NAME = "agent";
+    private static final String K8S_AGENT_CONTAINER_IMAGE = "jenkins/remoting-kafka-agent:latest";
 
     @CheckForNull
     private transient volatile ExecutorService launcherExecutorService;
@@ -50,6 +54,9 @@ public class KafkaComputerLauncher extends ComputerLauncher {
 
     private boolean enableSSL;
 
+    public KafkaComputerLauncher() {
+    }
+
     @DataBoundConstructor
     public KafkaComputerLauncher(String kafkaUsername, String sslTruststoreLocation, String sslKeystoreLocation,
                                  String enableSSL) {
@@ -60,13 +67,14 @@ public class KafkaComputerLauncher extends ComputerLauncher {
     }
 
     @Override
-    public boolean isLaunchSupported() {
-        return true;
+    public synchronized void launch(SlaveComputer computer, final TaskListener listener) {
+        if (computer instanceof KafkaCloudComputer) {
+            launchKubernetesPod((KafkaCloudComputer) computer);
+        }
+        launchSlave(computer, listener);
     }
 
-    @Override
-    public synchronized void launch(SlaveComputer computer, final TaskListener listener)
-            throws IOException, InterruptedException {
+    private void launchSlave(SlaveComputer computer, final TaskListener listener) {
         launcherExecutorService = Executors.newSingleThreadExecutor(
                 new NamingThreadFactory(Executors.defaultThreadFactory(),
                         "KafkaComputerLauncher.launch for '" + computer.getName() + "' node"));
@@ -75,10 +83,11 @@ public class KafkaComputerLauncher extends ComputerLauncher {
             @Override
             public Boolean call() throws Exception {
                 Boolean rval = Boolean.FALSE;
-                String topic = KafkaConfigs.getConnectionTopic(computer.getName(), retrieveJenkinsURL());
+                URL jenkinsUrl = retrieveJenkinsURL(computer);
+                String topic = KafkaConfigs.getConnectionTopic(computer.getName(), jenkinsUrl);
                 KafkaUtils.createTopic(topic, GlobalKafkaConfiguration.get().getZookeeperURL(),
                         4, 1);
-                if (!isValidAgent(computer.getName(), listener)) {
+                if (!isValidAgent(computer.getName(), jenkinsUrl, listener)) {
                     return Boolean.FALSE;
                 }
                 try {
@@ -137,6 +146,42 @@ public class KafkaComputerLauncher extends ComputerLauncher {
         }
     }
 
+    private void launchKubernetesPod(KafkaCloudComputer computer) {
+        try {
+            KafkaCloudSlave slave = computer.getNode();
+            KubernetesClient client = slave.getCloud().connect();
+
+            // Build Pod
+            Container agentContainer = new ContainerBuilder()
+                    .withName(K8S_AGENT_CONTAINER_NAME)
+                    .withImage(K8S_AGENT_CONTAINER_IMAGE)
+                    .withArgs(getLaunchArguments(computer).split(" "))
+                    .build();
+
+            PodSpec spec = new PodSpecBuilder()
+                    .withContainers(agentContainer)
+                    .build();
+
+            ObjectMeta metadata = new ObjectMeta();
+            metadata.setName(slave.getName());
+
+            Pod pod = new PodBuilder()
+                    .withMetadata(metadata)
+                    .withSpec(spec)
+                    .build();
+
+            // Start Pod
+            String podId = pod.getMetadata().getName();
+            String namespace = slave.getNamespace();
+
+            LOGGER.fine(String.format("Creating Pod: %s/%s", namespace, podId));
+            client.pods().inNamespace(namespace).create(pod);
+            LOGGER.info(String.format("Created Pod: %s/%s", namespace, podId));
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Failed to launch Kubernetes pod for computer " + computer.getDisplayName(), e);
+        }
+    }
+
     @Override
     public void afterDisconnect(SlaveComputer slaveComputer, final TaskListener listener) {
         ExecutorService srv = launcherExecutorService;
@@ -148,7 +193,7 @@ public class KafkaComputerLauncher extends ComputerLauncher {
 
     private CommandTransport makeTransport(SlaveComputer computer) throws RemotingKafkaException {
         String nodeName = computer.getName();
-        URL jenkinsURL = retrieveJenkinsURL();
+        URL jenkinsURL = retrieveJenkinsURL(computer);
         String kafkaURL = getKafkaURL();
         String topic = KafkaConfigs.getConnectionTopic(nodeName, jenkinsURL);
         GlobalKafkaConfiguration kafkaConfig = GlobalKafkaConfiguration.get();
@@ -183,6 +228,21 @@ public class KafkaComputerLauncher extends ComputerLauncher {
 
     public String getLaunchSecret(@Nonnull Computer computer) {
         return KafkaSecretManager.getConnectionSecret(computer.getName());
+    }
+
+    public String getLaunchArguments(@Nonnull Computer computer) throws RemotingKafkaConfigurationException {
+        String baseArgs = String.format("-name %s -master %s -secret %s -kafkaURL %s",
+                computer.getName(),
+                retrieveJenkinsURL(computer),
+                getLaunchSecret(computer),
+                getKafkaURL()
+        );
+        String authArgs = enableSSL ? String.format("-kafkaUsername %s -sslTruststoreLocation %s -sslKeystoreLocation %s",
+                kafkaUsername,
+                sslTruststoreLocation,
+                sslKeystoreLocation
+        ) : "-noauth";
+        return String.format("%s %s", baseArgs, authArgs);
     }
 
     public String getKafkaURL() {
@@ -221,25 +281,30 @@ public class KafkaComputerLauncher extends ComputerLauncher {
         this.enableSSL = enableSSL;
     }
 
-    private URL retrieveJenkinsURL() throws RemotingKafkaConfigurationException {
-        JenkinsLocationConfiguration loc = null;
-        try {
-            loc = JenkinsLocationConfiguration.get();
-        } catch (Exception e) {
-            throw new RemotingKafkaConfigurationException(Messages.KafkaComputerLauncher_NoJenkinsURL());
+    /**
+     * Returns Jenkins URL to be used by agents launched by this cloud. Always ends with a trailing slash.
+     *
+     * Uses in order:
+     * * Cloud configuration (if launched by Cloud)
+     * * Jenkins Location URL
+     */
+    private URL retrieveJenkinsURL(Computer computer) throws RemotingKafkaConfigurationException {
+        JenkinsLocationConfiguration locationConfiguration = JenkinsLocationConfiguration.get();
+        String cloudJenkinsUrl = null;
+        if (computer instanceof KafkaCloudComputer) {
+            KafkaCloudSlave slave = (KafkaCloudSlave) computer.getNode();
+            cloudJenkinsUrl = slave.getCloud().getJenkinsUrl();
         }
-        String jenkinsURL = loc.getUrl();
-        URL url;
+
+        String url = StringUtils.defaultIfBlank(cloudJenkinsUrl, locationConfiguration.getUrl());
         try {
-            if (jenkinsURL == null)
+            if (url == null)
                 throw new RemotingKafkaConfigurationException(Messages.KafkaComputerLauncher_MalformedJenkinsURL());
-            url = new URL(jenkinsURL);
+            return new URL(url);
         } catch (MalformedURLException e) {
             throw new RemotingKafkaConfigurationException(Messages.KafkaComputerLauncher_MalformedJenkinsURL());
         }
-        return url;
     }
-
     /**
      * Wait for secret confirmation from agent.
      *
@@ -247,10 +312,9 @@ public class KafkaComputerLauncher extends ComputerLauncher {
      * @return
      * @throws RemotingKafkaConfigurationException
      */
-    private boolean isValidAgent(@Nonnull String agentName, TaskListener listener)
+    private boolean isValidAgent(@Nonnull String agentName, @Nonnull URL jenkinsURL, TaskListener listener)
             throws RemotingKafkaException, InterruptedException {
         String kafkaURL = getKafkaURL();
-        URL jenkinsURL = retrieveJenkinsURL();
         String topic = KafkaConfigs.getConnectionTopic(agentName, jenkinsURL);
         GlobalKafkaConfiguration kafkaConfig = GlobalKafkaConfiguration.get();
         Properties securityProps = null;
