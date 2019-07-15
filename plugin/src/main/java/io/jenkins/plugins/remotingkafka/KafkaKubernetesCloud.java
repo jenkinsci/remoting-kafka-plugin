@@ -70,6 +70,8 @@ public class KafkaKubernetesCloud extends Cloud {
                 Util.fixEmpty(serverCertificate), Util.fixEmpty(credentialsId), skipTlsVerify
         ).createClient()) {
             return client;
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
             LOGGER.warning("Error connecting to Kubernetes client from Cloud " + name);
             return null;
