@@ -153,6 +153,10 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
         this.kubernetesApiPort = kubernetesApiPort;
     }
 
+    public String getKubernetesUrl() {
+        return getURL(getKubernetesIp(), Integer.parseInt(getKubernetesApiPort()));
+    }
+
     public String getKubernetesCertificate() {
         return kubernetesCertificate;
     }
@@ -379,7 +383,7 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
                     testConnection(serverIp, kafkaPort);
                     break;
                 } catch (IOException e) {
-                    LOGGER.info(String.format("Waiting for Kafka connection at %s:%s", serverIp, kafkaPort));
+                    LOGGER.fine(String.format("Waiting for Kafka connection at %s:%s", serverIp, kafkaPort));
                 }
                 TimeUnit.SECONDS.sleep(1);
             }
