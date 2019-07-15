@@ -149,6 +149,9 @@ public class KafkaComputerLauncher extends ComputerLauncher {
     private void launchKubernetesPod(KafkaCloudComputer computer) {
         try {
             KafkaCloudSlave slave = computer.getNode();
+            if (slave == null) {
+                throw new IllegalStateException("Node has been removed, cannot launch " + computer.getName());
+            }
             KubernetesClient client = slave.getCloud().connect();
 
             // Build Pod
@@ -293,7 +296,11 @@ public class KafkaComputerLauncher extends ComputerLauncher {
         String cloudJenkinsUrl = null;
         if (computer instanceof KafkaCloudComputer) {
             KafkaCloudSlave slave = (KafkaCloudSlave) computer.getNode();
-            cloudJenkinsUrl = slave.getCloud().getJenkinsUrl();
+            if (slave == null) {
+                LOGGER.warning("Cannot find node for computer " + computer.getName());
+            } else {
+                cloudJenkinsUrl = slave.getCloud().getJenkinsUrl();
+            }
         }
 
         String url = StringUtils.defaultIfBlank(cloudJenkinsUrl, locationConfiguration.getUrl());
