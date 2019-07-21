@@ -6,12 +6,38 @@
         <f:textbox default="kafka-kubernetes" clazz="required"/>
     </f:entry>
 
+    <f:entry title="${%Description}" field="description">
+        <f:textbox/>
+    </f:entry>
+
+    <f:entry title="${%Working directory}" field="workingDir">
+        <f:textbox default="/home/jenkins"/>
+    </f:entry>
+
     <f:entry title="${%Labels}" field="label">
         <f:textbox/>
+    </f:entry>
+
+    <f:entry title="${%Usage}" field="nodeUsageMode"  help="/help/system-config/master-slave/usage.html">
+        <f:enum>${it.description}</f:enum>
     </f:entry>
 
     <f:entry title="${%Jenkins URL}" field="jenkinsUrl">
         <f:textbox/>
     </f:entry>
+
+    <f:optionalBlock inline="true" name="enableSSL" title="Enable SSL" field="enableSSL">
+        <f:entry title="${%Kafka username}" field="kafkaUsername">
+            <f:textbox/>
+        </f:entry>
+        <f:entry title="${%SSL Truststore Location}" field="sslTruststoreLocation">
+            <f:textbox/>
+        </f:entry>
+        <f:entry title="${%SSL Keystore Location}" field="sslKeystoreLocation">
+            <f:textbox/>
+        </f:entry>
+    </f:optionalBlock>
+
+    <f:descriptorList title="${%Node Properties}" descriptors="${h.getNodePropertyDescriptors(descriptor.clazz)}" field="nodeProperties" />
 
 </j:jelly>

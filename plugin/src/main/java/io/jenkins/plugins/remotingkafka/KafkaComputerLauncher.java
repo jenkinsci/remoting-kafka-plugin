@@ -39,7 +39,7 @@ import java.util.logging.Logger;
 
 public class KafkaComputerLauncher extends ComputerLauncher {
     private static final Logger LOGGER = Logger.getLogger(KafkaComputerLauncher.class.getName());
-    private static final long DEFAULT_TIMEOUT = 60000;
+    private static final long DEFAULT_TIMEOUT = TimeUnit.SECONDS.toMillis(60);
     private static final String K8S_AGENT_CONTAINER_NAME = "agent";
     private static final String K8S_AGENT_CONTAINER_IMAGE = "jenkins/remoting-kafka-agent:latest";
 
@@ -55,14 +55,20 @@ public class KafkaComputerLauncher extends ComputerLauncher {
     private boolean enableSSL;
 
     public KafkaComputerLauncher() {
+        this.enableSSL = false;
+    }
+
+    public KafkaComputerLauncher(String kafkaUsername, String sslTruststoreLocation, String sslKeystoreLocation) {
+        this.kafkaUsername = kafkaUsername;
+        this.sslTruststoreLocation = sslTruststoreLocation;
+        this.sslKeystoreLocation = sslKeystoreLocation;
+        this.enableSSL = true;
     }
 
     @DataBoundConstructor
     public KafkaComputerLauncher(String kafkaUsername, String sslTruststoreLocation, String sslKeystoreLocation,
                                  String enableSSL) {
-        this.kafkaUsername = kafkaUsername;
-        this.sslTruststoreLocation = sslTruststoreLocation;
-        this.sslKeystoreLocation = sslKeystoreLocation;
+        this(kafkaUsername, sslTruststoreLocation, sslKeystoreLocation);
         this.enableSSL = Boolean.valueOf(enableSSL);
     }
 
