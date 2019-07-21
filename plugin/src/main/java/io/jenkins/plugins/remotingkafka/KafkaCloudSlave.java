@@ -52,19 +52,17 @@ public class KafkaCloudSlave extends AbstractCloudSlave {
 
     public KafkaCloudSlave(KafkaKubernetesCloud cloud) throws Descriptor.FormException, IOException {
         super(getSlaveName(cloud.name),
-                "",
-                // TODO: Remote FS field in Cloud config
-                "/workingDir",
-                1,
-                // TODO: Node usage mode field
-                Mode.NORMAL,
+                cloud.getDescription(),
+                cloud.getWorkingDir(),
+                KafkaKubernetesCloud.AGENT_NUM_EXECUTORS,
+                cloud.getNodeUsageMode(),
                 cloud.getLabel(),
-                // TODO: SSL field
-                new KafkaComputerLauncher(),
+                cloud.isEnableSSL() ?
+                        new KafkaComputerLauncher(cloud.getKafkaUsername(), cloud.getSslTruststoreLocation(), cloud.getSslKeystoreLocation())
+                        : new KafkaComputerLauncher(),
                 // TODO: Retention strat
                 CloudSlaveRetentionStrategy.INSTANCE,
-                // TODO: Node properties field
-                new ArrayList<>());
+                cloud.getNodeProperties());
 
         this.cloudName = cloud.name;
     }

@@ -8,6 +8,7 @@ import hudson.model.Label;
 import hudson.model.Node;
 import hudson.model.labels.LabelAtom;
 import hudson.slaves.Cloud;
+import hudson.slaves.NodeProperty;
 import hudson.slaves.NodeProvisioner.PlannedNode;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.lang.StringUtils;
@@ -21,10 +22,19 @@ import java.util.stream.Collectors;
 
 public class KafkaKubernetesCloud extends Cloud {
     private static final Logger LOGGER = Logger.getLogger(KafkaKubernetesCloud.class.getName());
-    private static final int AGENT_NUM_EXECUTORS = 1;
+    public static final int AGENT_NUM_EXECUTORS = 1;
 
     private String jenkinsUrl;
     private String label;
+    private Node.Mode nodeUsageMode;
+    private String description;
+    private String workingDir;
+    private List<? extends NodeProperty<?>> nodeProperties;
+
+    private String kafkaUsername;
+    private String sslTruststoreLocation;
+    private String sslKeystoreLocation;
+    private boolean enableSSL;
 
     @DataBoundConstructor
     public KafkaKubernetesCloud(String name) {
@@ -47,6 +57,78 @@ public class KafkaKubernetesCloud extends Cloud {
     @DataBoundSetter
     public void setLabel(String label) {
         this.label = label;
+    }
+
+    public Node.Mode getNodeUsageMode() {
+        return nodeUsageMode;
+    }
+
+    @DataBoundSetter
+    public void setNodeUsageMode(Node.Mode nodeUsageMode) {
+        this.nodeUsageMode = nodeUsageMode;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    @DataBoundSetter
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getWorkingDir() {
+        return workingDir;
+    }
+
+    @DataBoundSetter
+    public void setWorkingDir(String workingDir) {
+        this.workingDir = workingDir;
+    }
+
+    public List<? extends NodeProperty<?>> getNodeProperties() {
+        return nodeProperties;
+    }
+
+    @DataBoundSetter
+    public void setNodeProperties(List<? extends NodeProperty<?>> nodeProperties) {
+        this.nodeProperties = nodeProperties;
+    }
+
+    public String getKafkaUsername() {
+        return kafkaUsername;
+    }
+
+    @DataBoundSetter
+    public void setKafkaUsername(String kafkaUsername) {
+        this.kafkaUsername = kafkaUsername;
+    }
+
+    public String getSslTruststoreLocation() {
+        return sslTruststoreLocation;
+    }
+
+    @DataBoundSetter
+    public void setSslTruststoreLocation(String sslTruststoreLocation) {
+        this.sslTruststoreLocation = sslTruststoreLocation;
+    }
+
+    public String getSslKeystoreLocation() {
+        return sslKeystoreLocation;
+    }
+
+    @DataBoundSetter
+    public void setSslKeystoreLocation(String sslKeystoreLocation) {
+        this.sslKeystoreLocation = sslKeystoreLocation;
+    }
+
+    public boolean isEnableSSL() {
+        return enableSSL;
+    }
+
+    @DataBoundSetter
+    public void setEnableSSL(boolean enableSSL) {
+        this.enableSSL = enableSSL;
     }
 
     public Set<LabelAtom> getLabelSet() {
