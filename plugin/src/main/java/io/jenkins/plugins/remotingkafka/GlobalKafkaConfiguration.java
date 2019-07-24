@@ -2,9 +2,12 @@ package io.jenkins.plugins.remotingkafka;
 
 import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.common.StandardCertificateCredentials;
+import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.domains.SchemeRequirement;
+import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
 import com.cloudbees.plugins.credentials.matchers.IdMatcher;
 import hudson.Extension;
 import hudson.Util;
@@ -25,6 +28,9 @@ import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.jenkinsci.Symbol;
+import org.jenkinsci.plugins.kubernetes.credentials.TokenProducer;
+import org.jenkinsci.plugins.plaincredentials.FileCredentials;
+import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -494,17 +500,21 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
     }
 
     @RequirePOST
-    public ListBoxModel doFillKubernetesCredentialsIdItems(@AncestorInPath Item item, @QueryParameter String credentialsId) {
-        return fillCredentialsIdItems(item, credentialsId);
-    }
-
-    public FormValidation doCheckKubernetesCredentialsId(@AncestorInPath Item item, @QueryParameter String value) {
-        FormValidation checkedResult = checkCredentialsId(item, value);
-        boolean isAdminOrNullItem = (item != null || Jenkins.get().hasPermission(Jenkins.ADMINISTER));
-        if (isAdminOrNullItem && checkedResult.equals(FormValidation.ok())) {
-            this.kubernetesCredentialsId = value;
-        }
-        return checkedResult;
+    public ListBoxModel doFillKubernetesCredentialsIdItems() {
+        Jenkins.get().checkPermission(Jenkins.ADMINISTER);
+        return new StandardListBoxModel().withEmptySelection()
+                .withMatching(
+                        CredentialsMatchers.anyOf(
+                                CredentialsMatchers.instanceOf(StandardUsernamePasswordCredentials.class),
+                                CredentialsMatchers.instanceOf(FileCredentials.class),
+                                CredentialsMatchers.instanceOf(TokenProducer.class),
+                                CredentialsMatchers.instanceOf(StandardCertificateCredentials.class),
+                                CredentialsMatchers.instanceOf(StringCredentials.class)),
+                        CredentialsProvider.lookupCredentials(StandardCredentials.class,
+                                Jenkins.get(),
+                                ACL.SYSTEM,
+                                Collections.EMPTY_LIST
+                        ));
     }
 
     private FormValidation checkCredentialsId(@AncestorInPath Item item, @QueryParameter String value) {
