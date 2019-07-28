@@ -40,7 +40,6 @@ import java.util.logging.Logger;
 public class KafkaComputerLauncher extends ComputerLauncher {
     private static final Logger LOGGER = Logger.getLogger(KafkaComputerLauncher.class.getName());
     private static final long DEFAULT_TIMEOUT = TimeUnit.SECONDS.toMillis(60);
-    private static final String K8S_AGENT_CONTAINER_NAME = "agent";
     private static final String K8S_AGENT_CONTAINER_IMAGE = "jenkins/remoting-kafka-agent:latest";
 
     @CheckForNull
@@ -162,7 +161,7 @@ public class KafkaComputerLauncher extends ComputerLauncher {
 
             // Build Pod
             Container agentContainer = new ContainerBuilder()
-                    .withName(K8S_AGENT_CONTAINER_NAME)
+                    .withName(slave.getName())
                     .withImage(K8S_AGENT_CONTAINER_IMAGE)
                     .withArgs(getLaunchArguments(computer).split(" "))
                     .build();
