@@ -1,6 +1,25 @@
 Changelog
 ===
 
+# 2.0.1-beta
+
+Release date: July 24, 2019
+
+* [JENKINS-58688](https://issues.jenkins-ci.org/browse/JENKINS-58688) - Separate Kubernetes configuration fields for Cloud
+
+# 2.0.0-beta
+
+Release date: July 23, 2019
+
+* [JENKINS-57668](https://issues.jenkins-ci.org/browse/JENKINS-57668) - Implement Cloud API to provision Kafka agents
+
+# 2.0.0-alpha
+
+Release date: July 11, 2019
+
+* [JENKINS-57667](https://issues.jenkins-ci.org/browse/JENKINS-57667), [JENKINS-57896](https://issues.jenkins-ci.org/browse/JENKINS-57896) - Launching Zookeeper and Kafka in Kubernetes feature
+* [JENKINS-57669](https://issues.jenkins-ci.org/browse/JENKINS-57669) - Kubernetes YAML specification files for Zookeeper and Kafka
+
 # 1.1.3
 
 Release date: Oct 20, 2018
