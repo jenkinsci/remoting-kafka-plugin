@@ -152,12 +152,13 @@ public class KafkaComputerLauncher extends ComputerLauncher {
     }
 
     private void launchKubernetesPod(KafkaCloudComputer computer) {
+        KubernetesClient client = null;
         try {
             KafkaCloudSlave slave = computer.getNode();
             if (slave == null) {
                 throw new IllegalStateException("Node has been removed, cannot launch " + computer.getName());
             }
-            KubernetesClient client = slave.getCloud().connect();
+            client = slave.getCloud().connect();
 
             // Build Pod
             Container agentContainer = new ContainerBuilder()
@@ -187,6 +188,10 @@ public class KafkaComputerLauncher extends ComputerLauncher {
             LOGGER.info(String.format("Created Pod: %s/%s", namespace, podId));
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Failed to launch Kubernetes pod for computer " + computer.getDisplayName(), e);
+        } finally {
+            if (client != null) {
+                client.close();
+            }
         }
     }
 
