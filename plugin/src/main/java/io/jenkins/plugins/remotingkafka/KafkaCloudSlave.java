@@ -1,6 +1,7 @@
 package io.jenkins.plugins.remotingkafka;
 
 import hudson.Extension;
+import hudson.Util;
 import hudson.model.Descriptor;
 import hudson.model.TaskListener;
 import hudson.slaves.*;
@@ -52,7 +53,7 @@ public class KafkaCloudSlave extends AbstractCloudSlave {
 
     public KafkaCloudSlave(KafkaKubernetesCloud cloud) throws Descriptor.FormException, IOException {
         super(getSlaveName(cloud.name),
-                cloud.getDescription(),
+                Util.fixNull(cloud.getDescription()),
                 cloud.getWorkingDir(),
                 KafkaKubernetesCloud.AGENT_NUM_EXECUTORS,
                 cloud.getNodeUsageMode(),

@@ -40,7 +40,6 @@ import java.util.logging.Logger;
 public class KafkaComputerLauncher extends ComputerLauncher {
     private static final Logger LOGGER = Logger.getLogger(KafkaComputerLauncher.class.getName());
     private static final long DEFAULT_TIMEOUT = TimeUnit.SECONDS.toMillis(60);
-    private static final String K8S_AGENT_CONTAINER_IMAGE = "jenkins/remoting-kafka-agent:latest";
 
     @CheckForNull
     private transient volatile ExecutorService launcherExecutorService;
@@ -158,12 +157,13 @@ public class KafkaComputerLauncher extends ComputerLauncher {
             if (slave == null) {
                 throw new IllegalStateException("Node has been removed, cannot launch " + computer.getName());
             }
-            client = slave.getCloud().connect();
+            KafkaKubernetesCloud cloud = slave.getCloud();
+            client = cloud.connect();
 
             // Build Pod
             Container agentContainer = new ContainerBuilder()
                     .withName(slave.getName())
-                    .withImage(K8S_AGENT_CONTAINER_IMAGE)
+                    .withImage(cloud.getContainerImage())
                     .withArgs(getLaunchArguments(computer).split(" "))
                     .build();
 

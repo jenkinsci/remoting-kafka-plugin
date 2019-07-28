@@ -50,6 +50,7 @@ public class KafkaKubernetesCloud extends Cloud {
     private String namespace;
 
     private String jenkinsUrl;
+    private String containerImage;
     private String label;
     private Node.Mode nodeUsageMode;
     private String description;
@@ -118,6 +119,15 @@ public class KafkaKubernetesCloud extends Cloud {
     @DataBoundSetter
     public void setJenkinsUrl(String jenkinsUrl) {
         this.jenkinsUrl = jenkinsUrl;
+    }
+
+    public String getContainerImage() {
+        return containerImage;
+    }
+
+    @DataBoundSetter
+    public void setContainerImage(String containerImage) {
+        this.containerImage = containerImage;
     }
 
     public String getLabel() {
