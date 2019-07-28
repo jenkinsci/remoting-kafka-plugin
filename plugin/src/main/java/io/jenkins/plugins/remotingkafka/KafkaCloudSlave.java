@@ -3,6 +3,7 @@ package io.jenkins.plugins.remotingkafka;
 import hudson.Extension;
 import hudson.Util;
 import hudson.model.Descriptor;
+import hudson.model.Node;
 import hudson.model.TaskListener;
 import hudson.slaves.*;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -13,11 +14,15 @@ import org.apache.commons.lang.StringUtils;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class KafkaCloudSlave extends AbstractCloudSlave {
     private static final Logger LOGGER = Logger.getLogger(KafkaCloudSlave.class.getName());
     private static final String DEFAULT_AGENT_PREFIX = "remoting-kafka-agent";
+    private static final int AGENT_NAME_RANDOM_LENGTH = 5;
 
     private String cloudName;
 
@@ -68,18 +73,26 @@ public class KafkaCloudSlave extends AbstractCloudSlave {
         this.cloudName = cloud.name;
     }
 
-    private static String getSlaveName(String baseName) {
-        String randString = RandomStringUtils.random(5, "bcdfghjklmnpqrstvwxz0123456789");
-        String name = baseName;
-        if (StringUtils.isEmpty(name)) {
-            return String.format("%s-%s", DEFAULT_AGENT_PREFIX, randString);
-        }
+    private static String getSlaveName(String baseNameArg) {
+        String baseName = StringUtils.defaultIfBlank(baseNameArg, DEFAULT_AGENT_PREFIX);
         // Because the name is also used in Kubernetes, it should conform to domain name standard
         // No spaces, lower-cased
-        name = name.replaceAll("[ _]", "-").toLowerCase();
+        baseName = baseName.replaceAll("[ _]", "-").toLowerCase();
         // Keep it under 63 chars (62 is used to account for the '-')
-        name = name.substring(0, Math.min(name.length(), 62 - randString.length()));
-        return String.format("%s-%s", name, randString);
+        baseName = baseName.substring(0, Math.min(baseName.length(), 62 - AGENT_NAME_RANDOM_LENGTH));
+
+        Set<String> existingNodeNames = Jenkins.get()
+                .getNodes()
+                .stream()
+                .map(Node::getNodeName)
+                .collect(Collectors.toSet());
+        while (true) {
+            String randString = RandomStringUtils.random(AGENT_NAME_RANDOM_LENGTH, "bcdfghjklmnpqrstvwxz0123456789");
+            String name = String.format("%s-%s", baseName, randString);
+            if (!existingNodeNames.contains(name)) {
+                return name;
+            }
+        }
     }
 
     @Override
