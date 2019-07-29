@@ -18,6 +18,13 @@ public class GlobalKafkaConfigurationTest {
         g.setSslKeyCredentialsId("dummy");
         g.setSslKeystoreCredentialsId("dummy");
         g.setSslTruststoreCredentialsId("dummy");
+        g.setUseKubernetes(true);
+        g.setKubernetesIp("192.168.99.100");
+        g.setKubernetesApiPort("8443");
+        g.setKubernetesCertificate("dummy");
+        g.setKafkaCredentialsId("dummy");
+        g.setKubernetesSkipTlsVerify(false);
+        g.setKubernetesNamespace("default");
         g.save();
         g.load();
     }

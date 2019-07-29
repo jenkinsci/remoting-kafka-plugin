@@ -73,7 +73,7 @@ public class KafkaCloudSlave extends AbstractCloudSlave {
         this.cloudName = cloud.name;
     }
 
-    private static String getSlaveName(String baseNameArg) {
+    public static String getSlaveName(String baseNameArg) {
         String baseName = StringUtils.defaultIfBlank(baseNameArg, DEFAULT_AGENT_PREFIX);
         // Because the name is also used in Kubernetes, it should conform to domain name standard
         // No spaces, lower-cased
