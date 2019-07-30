@@ -1,20 +1,13 @@
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core"
->
+<j:jelly xmlns:j="jelly:core">
     <j:choose>
         <j:when test="${it.offline and !it.temporarilyOffline}">
             <j:if test="${h.hasPermission(it, it.CONNECT)}">
                 <p>
                     ${%Connect agent to Jenkins with Kafka:}
                 </p>
-                <j:if test="${it.launcher.enableSSL}">
-                    <pre>java${it.launcher.vmargs == null ? '' : ' ' + it.launcher.vmargs} -jar remoting-kafka-agent.jar -name ${it.name} -master ${h.inferHudsonURL(request)} -secret ${it.launcher.getLaunchSecret(it)} -kafkaURL ${it.launcher.kafkaURL} -kafkaUsername ${it.launcher.kafkaUsername} -sslTruststoreLocation ${it.launcher.sslTruststoreLocation} -sslKeystoreLocation ${it.launcher.sslKeystoreLocation}
-                    </pre>
-                </j:if>
-                <j:if test="${!it.launcher.enableSSL}">
-                    <pre>java${it.launcher.vmargs == null ? '' : ' ' + it.launcher.vmargs} -jar remoting-kafka-agent.jar -name ${it.name} -master ${h.inferHudsonURL(request)} -secret ${it.launcher.getLaunchSecret(it)} -kafkaURL ${it.launcher.kafkaURL} -noauth
-                    </pre>
-                </j:if>
+                <pre>java${it.launcher.vmargs == null ? '' : ' ' + it.launcher.vmargs} -jar remoting-kafka-agent.jar ${it.launcher.getLaunchArguments(it)}
+                </pre>
             </j:if>
         </j:when>
         <j:otherwise>
