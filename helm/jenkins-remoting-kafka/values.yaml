@@ -1,0 +1,33 @@
+# ------------------------------------------------------------------------------
+# Jenkins with Remoting over Kafka plugin:
+# ------------------------------------------------------------------------------
+
+jenkins:
+  ## If true, install the Jenkins chart alongside
+  ## ref: https://github.com/kubernetes/charts/tree/master/stable/jenkins
+  enabled: true
+
+  master:
+    tag: 2.176.2
+
+    installPlugins:
+      - remoting-kafka:2.0.0
+
+    JCasC:
+      enabled: true
+      configScripts:
+        remoting-kafka: |
+          jenkins:
+            clouds:
+              - kafkaKubernetes:
+                  name: "kafka-kubernetes"
+                  serverUrl: "https://kubernetes.default"
+                  namespace: "default"
+                  containerImage: "jenkins/remoting-kafka-agent:latest"
+                  workingDir: "/home/jenkins"
+                  label: "kafka-kubernetes-cloud"
+
+kafka:
+  ## If true, install the Kafka chart alongside
+  ## ref: https://github.com/kubernetes/charts/tree/master/incubator/kafka
+  enabled: true

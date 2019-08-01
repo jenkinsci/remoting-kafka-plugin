@@ -1,0 +1,9 @@
+dependencies:
+- name: jenkins
+  repository: https://kubernetes-charts.storage.googleapis.com/
+  version: 1.4.1
+- name: kafka
+  repository: https://kubernetes-charts-incubator.storage.googleapis.com/
+  version: 0.16.2
+digest: sha256:cf2e8f74fb243bf00044bb5da357a806c1378b40d139dcc11ec3639c8283aa66
+generated: "2019-07-31T20:34:24.317316+07:00"
