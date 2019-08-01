@@ -1,0 +1,39 @@
+jenkins:
+  persistence:
+    enabled: false
+
+  master:
+    serviceType: NodePort
+
+    installPlugins:
+      - remoting-kafka:2.0.0
+      - job-dsl:1.74
+
+    JCasC:
+      configScripts:
+        demo: |
+          unclassified:
+            kafka:
+              brokerURL: demo-kafka:9092
+              zookeeperURL: demo-zookeeper:2181
+          jobs:
+            - script: >
+                freeStyleJob('test-hello') {
+                    label 'kafka-kubernetes-cloud'
+                    steps {
+                        shell 'echo Hello World'
+                    }
+                }
+
+# Run Kafka and Zookeeper in standalone mode
+kafka:
+  replicas: 1
+
+  envOverrides:
+    KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: "1"
+
+  persistence:
+    enabled: false
+
+  zookeeper:
+    replicaCount: 1
