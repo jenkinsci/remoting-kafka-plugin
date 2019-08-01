@@ -60,7 +60,7 @@ public class KafkaKubernetesCloud extends Cloud {
     private String kafkaUsername;
     private String sslTruststoreLocation;
     private String sslKeystoreLocation;
-    private boolean enableSSL;
+    private boolean enableSSL = false;
 
     @DataBoundConstructor
     public KafkaKubernetesCloud(String name) {
