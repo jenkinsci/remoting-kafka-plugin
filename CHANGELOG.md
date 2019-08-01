@@ -1,6 +1,14 @@
 Changelog
 ===
 
+# 2.0.0
+
+Release date: July 30, 2019
+
+* [JENKINS-57668](https://issues.jenkins-ci.org/browse/JENKINS-57668) - Implement Cloud API to provision Kafka agents
+* [JENKINS-58288](https://issues.jenkins-ci.org/browse/JENKINS-58288) - Helm Chart to bootstrap the system in Kubernetes
+* Add more unit tests
+
 # 2.0.1-beta
 
 Release date: July 24, 2019
