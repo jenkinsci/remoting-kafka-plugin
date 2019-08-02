@@ -1,7 +1,6 @@
 package io.jenkins.plugins.remotingkafka;
 
 import hudson.Extension;
-import hudson.Util;
 import hudson.model.Descriptor;
 import hudson.model.Node;
 import hudson.model.TaskListener;
@@ -14,7 +13,6 @@ import org.apache.commons.lang.StringUtils;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -56,9 +54,9 @@ public class KafkaCloudSlave extends AbstractCloudSlave {
         return getCloud().getNamespace();
     }
 
-    public KafkaCloudSlave(KafkaKubernetesCloud cloud) throws Descriptor.FormException, IOException {
+    public KafkaCloudSlave(@Nonnull KafkaKubernetesCloud cloud) throws Descriptor.FormException, IOException {
         super(getSlaveName(cloud.name),
-                Util.fixNull(cloud.getDescription()),
+                cloud.getDescription(),
                 cloud.getWorkingDir(),
                 KafkaKubernetesCloud.AGENT_NUM_EXECUTORS,
                 cloud.getNodeUsageMode(),
@@ -68,7 +66,7 @@ public class KafkaCloudSlave extends AbstractCloudSlave {
                         : new KafkaComputerLauncher(),
                 // TODO: Retention strat
                 CloudSlaveRetentionStrategy.INSTANCE,
-                cloud.getNodeProperties());
+                cloud.getNodeProperties() == null ? new ArrayList<>() : cloud.getNodeProperties());
 
         this.cloudName = cloud.name;
     }
