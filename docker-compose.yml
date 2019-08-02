@@ -35,8 +35,8 @@ services:
         volumes:
             - './certs/docker.kafka.server.keystore.jks:/kafka.keystore.jks:ro'
             - './certs/docker.kafka.server.truststore.jks:/kafka.truststore.jks:ro'
-            - './demo/jenkins.yaml:/var/jenkins_home/casc_configs/jenkins.yaml'
-            - './demo/init.groovy:/var/jenkins_home/init.groovy'
+            - './demo/docker/jenkins.yaml:/var/jenkins_home/casc_configs/jenkins.yaml'
+            - './demo/docker/init.groovy:/var/jenkins_home/init.groovy'
         environment:
             CASC_JENKINS_CONFIG: /var/jenkins_home/casc_configs/jenkins.yaml
 
@@ -51,7 +51,7 @@ services:
             - /var/run/docker.sock:/var/run/docker.sock
             - ./certs/docker.kafka.server.keystore.jks:/kafka.keystore.jks:ro
             - ./certs/docker.kafka.server.truststore.jks:/kafka.truststore.jks:ro
-            - ./demo/kafka_server_jaas.conf:/kafka_server_jaas.conf
+            - ./demo/docker/kafka_server_jaas.conf:/kafka_server_jaas.conf
         environment:
             # Zookeeper config
             KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
@@ -101,8 +101,8 @@ services:
             - zoo2
             - kafka-no-auth
         volumes:
-            - './demo/jenkins_no_auth.yaml:/var/jenkins_home/casc_configs/jenkins.yaml'
-            - './demo/init.groovy:/var/jenkins_home/init.groovy'
+            - './demo/docker/jenkins_no_auth.yaml:/var/jenkins_home/casc_configs/jenkins.yaml'
+            - './demo/docker/init.groovy:/var/jenkins_home/init.groovy'
         environment:
             CASC_JENKINS_CONFIG: /var/jenkins_home/casc_configs/jenkins.yaml
 

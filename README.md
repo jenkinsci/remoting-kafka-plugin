@@ -29,6 +29,8 @@ See the [CHANGELOG](CHANGELOG.md).
 
 ## How to run demo of the plugin
 
+### Using Docker
+
 1. Requirements: docker, docker-compose installed.
 
 2. Set environment variable `DOCKERHOST`
@@ -49,6 +51,23 @@ See the [CHANGELOG](CHANGELOG.md).
 - Kakfa Manager supported in localhost:9000 to support monitoring of Kafka cluster.
 
 6. Stop the demo: `make clean`.
+
+### Using Kubernetes
+
+1. Requirements: A Kubernetes cluster (e.g. minikube), Helm
+
+2. Run the demo:
+
+```bash
+helm dep build helm/jenkins-remoting-kafka && \
+  helm install helm/jenkins-remoting-kafka -n demo -f demo/helm/values-override.yaml
+```
+
+4. Stop the demo:
+
+```bash
+helm delete --purge demo
+```
 
 ## Links
 
