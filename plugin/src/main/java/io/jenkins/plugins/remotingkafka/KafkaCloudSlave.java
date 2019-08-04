@@ -64,8 +64,7 @@ public class KafkaCloudSlave extends AbstractCloudSlave {
                 cloud.isEnableSSL() ?
                         new KafkaComputerLauncher(cloud.getKafkaUsername(), cloud.getSslTruststoreLocation(), cloud.getSslKeystoreLocation())
                         : new KafkaComputerLauncher(),
-                // TODO: Retention strat
-                CloudSlaveRetentionStrategy.INSTANCE,
+                new CloudRetentionStrategy(Integer.parseInt(cloud.getIdleMinutes())),
                 cloud.getNodeProperties() == null ? new ArrayList<>() : cloud.getNodeProperties());
 
         this.cloudName = cloud.name;

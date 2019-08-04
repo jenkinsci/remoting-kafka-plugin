@@ -51,6 +51,7 @@ public class KafkaKubernetesCloud extends Cloud {
 
     private String jenkinsUrl;
     private String containerImage;
+    private String idleMinutes;
     private String label;
     private Node.Mode nodeUsageMode;
     private String description;
@@ -128,6 +129,15 @@ public class KafkaKubernetesCloud extends Cloud {
     @DataBoundSetter
     public void setContainerImage(String containerImage) {
         this.containerImage = containerImage;
+    }
+
+    public String getIdleMinutes() {
+        return StringUtils.defaultIfBlank(idleMinutes, "0");
+    }
+
+    @DataBoundSetter
+    public void setIdleMinutes(String idleMinutes) {
+        this.idleMinutes = idleMinutes;
     }
 
     public String getLabel() {

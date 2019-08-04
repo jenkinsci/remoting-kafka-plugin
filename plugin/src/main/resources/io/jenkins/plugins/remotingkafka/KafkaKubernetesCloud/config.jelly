@@ -34,6 +34,10 @@
         <f:textbox default="jenkins/remoting-kafka-agent:latest"/>
     </f:entry>
 
+    <f:entry field="idleMinutes" title="${%Time in minutes to retain agent when idle}">
+        <f:textbox default="0"/>
+    </f:entry>
+
     <f:entry title="${%Node Description}" field="description">
         <f:textbox/>
     </f:entry>

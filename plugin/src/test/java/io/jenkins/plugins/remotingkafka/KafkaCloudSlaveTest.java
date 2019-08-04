@@ -20,6 +20,7 @@ public class KafkaCloudSlaveTest {
         cloud.setDescription(null);
         cloud.setWorkingDir(null);
         cloud.setNodeUsageMode(null);
+        cloud.setIdleMinutes(null);
         cloud.setLabel(null);
         cloud.setNodeProperties(null);
         new KafkaCloudSlave(cloud);
