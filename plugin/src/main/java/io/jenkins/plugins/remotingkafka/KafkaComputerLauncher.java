@@ -161,22 +161,19 @@ public class KafkaComputerLauncher extends ComputerLauncher {
             client = cloud.connect();
 
             // Build Pod
-            Container agentContainer = new ContainerBuilder()
+            Pod pod = new PodBuilder()
+                    .withNewMetadata()
+                    .withName(slave.getName())
+                    .endMetadata()
+
+                    .withNewSpec()
+                    .addNewContainer()
                     .withName(slave.getName())
                     .withImage(cloud.getContainerImage())
                     .withArgs(getLaunchArguments(computer).split(" "))
-                    .build();
+                    .endContainer()
+                    .endSpec()
 
-            PodSpec spec = new PodSpecBuilder()
-                    .withContainers(agentContainer)
-                    .build();
-
-            ObjectMeta metadata = new ObjectMeta();
-            metadata.setName(slave.getName());
-
-            Pod pod = new PodBuilder()
-                    .withMetadata(metadata)
-                    .withSpec(spec)
                     .build();
 
             // Start Pod
