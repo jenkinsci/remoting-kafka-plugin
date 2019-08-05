@@ -1,5 +1,10 @@
 package io.jenkins.plugins.remotingkafka;
 
+import static org.junit.Assert.assertThat;
+import static org.hamcrest.Matchers.*;
+
+import hudson.util.FormValidation;
+import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -7,6 +12,9 @@ import org.jvnet.hudson.test.JenkinsRule;
 public class GlobalKafkaConfigurationTest {
     @Rule
     public JenkinsRule j = new JenkinsRule();
+
+    @Rule
+    public KubernetesServer k = new KubernetesServer(true, true);
 
     @Test
     public void configRoundTrip() {
@@ -27,5 +35,19 @@ public class GlobalKafkaConfigurationTest {
         g.setKubernetesNamespace("default");
         g.save();
         g.load();
+    }
+
+    @Test
+    public void testTestKubernetesConnection() {
+        GlobalKafkaConfiguration g = GlobalKafkaConfiguration.get();
+        FormValidation result = g.doTestKubernetesConnection(
+                k.getMockServer().getHostName(),
+                String.valueOf(k.getMockServer().getPort()),
+                "",
+                "",
+                true,
+                ""
+        );
+        assertThat(result.kind, is(FormValidation.Kind.OK));
     }
 }

@@ -1,16 +1,34 @@
 package io.jenkins.plugins.remotingkafka;
 
 import static org.junit.Assert.assertThat;
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.Matchers.*;
 
+import hudson.model.FreeStyleProject;
 import hudson.model.labels.LabelAtom;
+import hudson.slaves.NodeProvisioner;
+import hudson.util.FormValidation;
+import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
+import java.io.IOException;
+import java.util.Collection;
+
 public class KafkaKubernetesCloudTest {
     @Rule
     public JenkinsRule j = new JenkinsRule();
+
+    @Rule
+    public KubernetesServer k = new KubernetesServer(true, true);
+
+    @Test
+    public void testProvision() {
+        KafkaKubernetesCloud cloud = new KafkaKubernetesCloud("kafka-kubernetes");
+        cloud.setServerUrl(k.getMockServer().url("/").toString());
+        Collection<NodeProvisioner.PlannedNode> nodes = cloud.provision(new LabelAtom("test"), 200);
+        assertThat(nodes, hasSize(200));
+    }
 
     @Test
     public void testCanProvisionSingleLabel() {
@@ -38,4 +56,16 @@ public class KafkaKubernetesCloudTest {
         assertThat(cloud.getNamespace(), is("default"));
     }
 
+    @Test
+    public void testTestKubernetesConnection() {
+        KafkaKubernetesCloud.DescriptorImpl descriptor = new KafkaKubernetesCloud.DescriptorImpl();
+        FormValidation result = descriptor.doTestConnection(
+                k.getMockServer().url("/").toString(),
+                "",
+                "",
+                true,
+                ""
+        );
+        assertThat(result.kind, is(FormValidation.Kind.OK));
+    }
 }
