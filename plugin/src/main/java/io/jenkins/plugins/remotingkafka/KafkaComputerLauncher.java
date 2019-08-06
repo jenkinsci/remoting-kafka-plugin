@@ -163,17 +163,15 @@ public class KafkaComputerLauncher extends ComputerLauncher {
             // Build Pod
             Pod pod = new PodBuilder()
                     .withNewMetadata()
-                    .withName(slave.getName())
+                        .withName(slave.getName())
                     .endMetadata()
-
                     .withNewSpec()
-                    .addNewContainer()
-                    .withName(slave.getName())
-                    .withImage(cloud.getContainerImage())
-                    .withArgs(getLaunchArguments(computer).split(" "))
-                    .endContainer()
+                        .addNewContainer()
+                            .withName(slave.getName())
+                            .withImage(cloud.getContainerImage())
+                            .withArgs(getLaunchArguments(computer).split(" "))
+                        .endContainer()
                     .endSpec()
-
                     .build();
 
             // Start Pod
