@@ -1,9 +1,10 @@
 package io.jenkins.plugins.remotingkafka;
 
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 import static org.hamcrest.CoreMatchers.*;
 
 import hudson.model.Descriptor;
+import org.apache.commons.lang.StringUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -24,6 +25,16 @@ public class KafkaCloudSlaveTest {
         cloud.setLabel(null);
         cloud.setNodeProperties(null);
         new KafkaCloudSlave(cloud);
+    }
+
+    @Test
+    public void testGetSlaveNameBlankBaseName() {
+        String baseName = null;
+        String name = KafkaCloudSlave.getSlaveName(baseName);
+        assertTrue(StringUtils.isNotBlank(name));
+        baseName = "";
+        name = KafkaCloudSlave.getSlaveName(baseName);
+        assertTrue(StringUtils.isNotBlank(name));
     }
 
     @Test
