@@ -29,7 +29,7 @@ spec:
               done
       containers:
         - name: kafka
-          image: wurstmeister/kafka:2.12-2.2.0
+          image: wurstmeister/kafka:2.12-2.3.0
           env:
             - name: POD_NAME
               valueFrom:
