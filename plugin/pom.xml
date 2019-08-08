@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>3.47</version>
+        <version>3.48</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -15,6 +15,7 @@
     <name>Remoting Kafka Plugin</name>
     <properties>
         <jenkins.version>2.176.2</jenkins.version>
+        <slf4jVersion>1.7.26</slf4jVersion>
         <java.level>8</java.level>
         <useBeta>true</useBeta>
     </properties>
@@ -27,17 +28,17 @@
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>credentials</artifactId>
-            <version>2.2.0</version>
+            <version>2.2.1</version>
         </dependency>
         <dependency>
             <groupId>io.fabric8</groupId>
             <artifactId>kubernetes-client</artifactId>
-            <version>4.1.3</version>
+            <version>4.4.0</version>
         </dependency>
         <dependency>
             <groupId>org.jenkinsci.plugins</groupId>
             <artifactId>kubernetes-credentials</artifactId>
-            <version>0.4.0</version>
+            <version>0.4.1</version>
         </dependency>
 
         <!-- for testing -->
@@ -50,13 +51,7 @@
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>kafka</artifactId>
-            <version>1.10.6</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-compress</artifactId>
-            <version>1.18</version>
+            <version>1.12.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -66,6 +61,17 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+    <dependencyManagement>
+        <dependencies>
+            <!-- Solve RequireUpperBoundDeps conflict between org.testcontainers.kafka and jenkins-core -->
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-compress</artifactId>
+                <version>1.18</version>
+                <scope>test</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <repositories>
         <repository>
             <id>repo.jenkins-ci.org</id>

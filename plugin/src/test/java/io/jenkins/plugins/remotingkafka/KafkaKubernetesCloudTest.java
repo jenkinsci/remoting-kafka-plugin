@@ -3,7 +3,6 @@ package io.jenkins.plugins.remotingkafka;
 import static org.junit.Assert.assertThat;
 import static org.hamcrest.Matchers.*;
 
-import hudson.model.FreeStyleProject;
 import hudson.model.labels.LabelAtom;
 import hudson.slaves.NodeProvisioner;
 import hudson.util.FormValidation;
@@ -12,7 +11,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
-import java.io.IOException;
 import java.util.Collection;
 
 public class KafkaKubernetesCloudTest {
