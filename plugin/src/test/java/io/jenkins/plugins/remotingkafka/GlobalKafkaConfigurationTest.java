@@ -84,7 +84,7 @@ public class GlobalKafkaConfigurationTest {
                 ""
         );
         assertThat(result.kind, is(FormValidation.Kind.ERROR));
-        
+
         result = g.doTestKubernetesConnection(
                 k.getMockServer().getHostName(),
                 String.valueOf(k.getMockServer().getPort()),

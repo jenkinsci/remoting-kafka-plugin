@@ -17,6 +17,7 @@ import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -37,14 +38,12 @@ public class KafkaKubernetesCloudTest {
         Collection<NodeProvisioner.PlannedNode> provisionedNodes = cloud.provision(new LabelAtom("test"), 1);
         assertThat(provisionedNodes, hasSize(1));
         KafkaCloudSlave slave = (KafkaCloudSlave) provisionedNodes.iterator().next().future.get();
-        j.jenkins.addNode(slave);
-        KafkaComputerLauncher launcher = (KafkaComputerLauncher) slave.getLauncher();
-        KafkaCloudComputer computer = (KafkaCloudComputer) slave.createComputer();
-
         TaskListener listener = new LogTaskListener(Logger.getLogger(KafkaKubernetesCloudTest.class.getName()), Level.INFO);
         PodResource<Pod, DoneablePod> pod = k.getClient().pods().inNamespace(cloud.getNamespace()).withName(slave.getNodeName());
+
         assertNull(pod.get());
-        launcher.launch(computer, listener);
+        j.jenkins.addNode(slave);
+        TimeUnit.SECONDS.sleep(10);
         assertNotNull(pod.get());
         slave._terminate(listener);
         assertNull(pod.get());
