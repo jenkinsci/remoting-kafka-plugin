@@ -43,7 +43,7 @@ public class KafkaKubernetesCloudTest {
 
         assertNull(pod.get());
         j.jenkins.addNode(slave);
-        TimeUnit.SECONDS.sleep(10);
+        TimeUnit.SECONDS.sleep(20);
         assertNotNull(pod.get());
         slave._terminate(listener);
         assertNull(pod.get());

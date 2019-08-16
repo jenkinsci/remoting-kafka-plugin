@@ -38,7 +38,6 @@ public class KafkaUtils {
                 .withSecurityProps(securityProps)
                 .build();
         // As producer props may get change, it's better to not reuse producer instance for now.
-        //        Producer<String, byte[]> producer = KafkaProducerClient.getInstance().getByteProducer(producerProps);
         Producer<String, byte[]> producer = null;
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
         try {
