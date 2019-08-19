@@ -1,17 +1,25 @@
 package io.jenkins.plugins.remotingkafka;
 
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 import static org.hamcrest.Matchers.*;
 
+import hudson.model.TaskListener;
 import hudson.model.labels.LabelAtom;
 import hudson.slaves.NodeProvisioner;
 import hudson.util.FormValidation;
+import hudson.util.LogTaskListener;
+import io.fabric8.kubernetes.api.model.DoneablePod;
+import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class KafkaKubernetesCloudTest {
     @Rule
@@ -21,9 +29,36 @@ public class KafkaKubernetesCloudTest {
     public KubernetesServer k = new KubernetesServer(true, true);
 
     @Test
-    public void testProvision() {
+    public void testProvisionCreateThenTerminatePod() throws Exception {
         KafkaKubernetesCloud cloud = new KafkaKubernetesCloud("kafka-kubernetes");
         cloud.setServerUrl(k.getMockServer().url("/").toString());
+        cloud.setSkipTlsVerify(true);
+        j.jenkins.clouds.add(cloud);
+
+        Collection<NodeProvisioner.PlannedNode> provisionedNodes = cloud.provision(new LabelAtom("test"), 1);
+        assertThat(provisionedNodes, hasSize(1));
+        KafkaCloudSlave slave = (KafkaCloudSlave) provisionedNodes.iterator().next().future.get();
+        TaskListener listener = new LogTaskListener(Logger.getLogger(KafkaKubernetesCloudTest.class.getName()), Level.INFO);
+        PodResource<Pod, DoneablePod> pod = k.getClient().pods().inNamespace(cloud.getNamespace()).withName(slave.getNodeName());
+
+        assertNull(pod.get());
+
+        // Poll for pod creation
+        j.jenkins.addNode(slave);
+        final int TIMEOUT = 30;
+        for(int i = 0; i < TIMEOUT; i++) {
+            if (pod.get() != null) break;
+            TimeUnit.SECONDS.sleep(1);
+        }
+        assertNotNull(pod.get());
+
+        slave._terminate(listener);
+        assertNull(pod.get());
+    }
+
+    @Test
+    public void testProvisionWorkloadSize() {
+        KafkaKubernetesCloud cloud = new KafkaKubernetesCloud("kafka-kubernetes");
         Collection<NodeProvisioner.PlannedNode> nodes = cloud.provision(new LabelAtom("test"), 200);
         assertThat(nodes, hasSize(200));
     }
@@ -58,6 +93,15 @@ public class KafkaKubernetesCloudTest {
     public void testTestKubernetesConnection() {
         KafkaKubernetesCloud.DescriptorImpl descriptor = new KafkaKubernetesCloud.DescriptorImpl();
         FormValidation result = descriptor.doTestConnection(
+                "",
+                "",
+                "",
+                true,
+                ""
+        );
+        assertThat(result.kind, is(FormValidation.Kind.ERROR));
+
+        result = descriptor.doTestConnection(
                 k.getMockServer().url("/").toString(),
                 "",
                 "",

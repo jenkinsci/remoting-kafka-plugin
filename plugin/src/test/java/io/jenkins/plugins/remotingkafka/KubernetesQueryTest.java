@@ -23,13 +23,13 @@ public class KubernetesQueryTest {
         KubernetesClient client = k.getClient();
         Service svc = new ServiceBuilder()
                 .withNewMetadata()
-                .withName("kafka-svc")
+                    .withName("kafka-svc")
                 .endMetadata()
                 .withNewSpec()
-                .withType("NodePort")
-                .addNewPort()
-                .withNodePort(31234)
-                .endPort()
+                    .withType("NodePort")
+                    .addNewPort()
+                        .withNodePort(31234)
+                    .endPort()
                 .endSpec()
                 .build();
         client.services().create(svc);

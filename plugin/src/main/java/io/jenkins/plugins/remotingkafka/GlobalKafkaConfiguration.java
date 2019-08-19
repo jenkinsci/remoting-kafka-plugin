@@ -7,7 +7,6 @@ import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.domains.SchemeRequirement;
-import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
 import com.cloudbees.plugins.credentials.matchers.IdMatcher;
 import hudson.Extension;
 import hudson.Util;
@@ -22,6 +21,7 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.jenkins.plugins.remotingkafka.exception.RemotingKafkaConfigurationException;
+import io.jenkins.plugins.remotingkafka.exception.RemotingKafkaException;
 import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
@@ -43,6 +43,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 import java.nio.file.Paths;
+import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -157,10 +158,6 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
 
     public void setKubernetesApiPort(String kubernetesApiPort) {
         this.kubernetesApiPort = kubernetesApiPort;
-    }
-
-    public String getKubernetesUrl() {
-        return getURL(getKubernetesIp(), Integer.parseInt(getKubernetesApiPort()));
     }
 
     public String getKubernetesCertificate() {
@@ -399,9 +396,7 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
             GlobalKafkaConfiguration.get().setZookeeperURL(getURL(serverIp, zookeeperPort));
             GlobalKafkaConfiguration.get().setBrokerURL(getURL(serverIp, kafkaPort));
             return FormValidation.ok(String.format("Success. Zookeeper: %s:%s and Kafka: %s:%s", serverIp, zookeeperPort, serverIp, kafkaPort));
-        } catch (RuntimeException e) {
-            throw e;
-        } catch (Exception e) {
+        } catch (RuntimeException | InterruptedException | RemotingKafkaException | IOException | GeneralSecurityException e) {
             LOGGER.log(Level.SEVERE, "Error", e);
             return FormValidation.error("Error: %s", e.getCause() == null
                     ? e.getMessage()
@@ -557,9 +552,13 @@ public class GlobalKafkaConfiguration extends GlobalConfiguration {
     }
 
     private static String getURL(String host, int port) {
-        return new URIBuilder()
+        String url = new URIBuilder()
             .setHost(host)
             .setPort(port)
             .toString();
+        if (url.startsWith("//")) {
+            url = url.substring("//".length());
+        }
+        return url;
     }
 }

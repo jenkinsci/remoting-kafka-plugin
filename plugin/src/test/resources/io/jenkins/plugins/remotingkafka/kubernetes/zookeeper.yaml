@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: zookeeper-svc
+spec:
+  ports:
+    - port: 2181
+      nodePort: 32181
+      name: client
+  selector:
+    app: zookeeper
+  type: NodePort
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zookeeper-svc-hs # Headless service for Zookeeper servers to communicate with each other
+spec:
+  ports:
+    - port: 2888
+      name: peer
+    - port: 3888
+      name: leader-election
+  clusterIP: None
+  selector:
+    app: zookeeper
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: zookeeper
+spec:
+  selector:
+    matchLabels:
+      app: zookeeper
+  serviceName: zookeeper-svc-hs
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: zookeeper
+    spec:
+      containers:
+        - name: zookeeper
+          image: zookeeper:3.5.5

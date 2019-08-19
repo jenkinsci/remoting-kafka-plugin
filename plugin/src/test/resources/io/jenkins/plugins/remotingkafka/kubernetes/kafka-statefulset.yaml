@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kafka
+spec:
+  selector:
+    matchLabels:
+      app: kafka
+  serviceName: kafka-svc-hs
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: kafka
+    spec:
+      containers:
+        - name: kafka
+          image: wurstmeister/kafka:2.12-2.3.0
