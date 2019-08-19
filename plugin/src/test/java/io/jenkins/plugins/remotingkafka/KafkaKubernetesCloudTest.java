@@ -42,9 +42,16 @@ public class KafkaKubernetesCloudTest {
         PodResource<Pod, DoneablePod> pod = k.getClient().pods().inNamespace(cloud.getNamespace()).withName(slave.getNodeName());
 
         assertNull(pod.get());
+
+        // Poll for pod creation
         j.jenkins.addNode(slave);
-        TimeUnit.SECONDS.sleep(20);
+        final int TIMEOUT = 30;
+        for(int i = 0; i < TIMEOUT; i++) {
+            if (pod.get() != null) break;
+            TimeUnit.SECONDS.sleep(1);
+        }
         assertNotNull(pod.get());
+
         slave._terminate(listener);
         assertNull(pod.get());
     }
