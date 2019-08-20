@@ -11,7 +11,7 @@ jenkins:
     tag: 2.176.2
 
     installPlugins:
-      - remoting-kafka:2.0.0
+      - remoting-kafka:2.0.1
 
     JCasC:
       enabled: true
