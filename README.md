@@ -63,7 +63,7 @@ helm dep build helm/jenkins-remoting-kafka && \
   helm install helm/jenkins-remoting-kafka -n demo -f demo/helm/values-override.yaml
 ```
 
-4. Stop the demo:
+3. Stop the demo:
 
 ```bash
 helm delete --purge demo
