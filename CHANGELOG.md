@@ -1,6 +1,14 @@
 Changelog
 ===
 
+# 2.0.1
+
+Release date: August 19, 2019
+
+* [JENKINS-58690](https://issues.jenkins-ci.org/browse/JENKINS-58690) - Retention strategy for Cloud nodes
+* [JENKINS-57898](https://issues.jenkins-ci.org/browse/JENKINS-57898), [JENKINS-58786](https://issues.jenkins-ci.org/browse/JENKINS-58786) - Increate test coverage to 70%
+* Update dependencies and Kafka versions
+
 # 2.0.0
 
 Release date: July 30, 2019
