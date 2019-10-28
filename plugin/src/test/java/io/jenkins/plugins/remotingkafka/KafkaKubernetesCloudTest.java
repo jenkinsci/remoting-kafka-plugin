@@ -37,14 +37,14 @@ public class KafkaKubernetesCloudTest {
 
         Collection<NodeProvisioner.PlannedNode> provisionedNodes = cloud.provision(new LabelAtom("test"), 1);
         assertThat(provisionedNodes, hasSize(1));
-        KafkaCloudSlave slave = (KafkaCloudSlave) provisionedNodes.iterator().next().future.get();
+        KafkaCloudSlave agent = (KafkaCloudSlave) provisionedNodes.iterator().next().future.get();
         TaskListener listener = new LogTaskListener(Logger.getLogger(KafkaKubernetesCloudTest.class.getName()), Level.INFO);
-        PodResource<Pod, DoneablePod> pod = k.getClient().pods().inNamespace(cloud.getNamespace()).withName(slave.getNodeName());
+        PodResource<Pod, DoneablePod> pod = k.getClient().pods().inNamespace(cloud.getNamespace()).withName(agent.getNodeName());
 
         assertNull(pod.get());
 
         // Poll for pod creation
-        j.jenkins.addNode(slave);
+        j.jenkins.addNode(agent);
         final int TIMEOUT = 30;
         for(int i = 0; i < TIMEOUT; i++) {
             if (pod.get() != null) break;
@@ -52,7 +52,7 @@ public class KafkaKubernetesCloudTest {
         }
         assertNotNull(pod.get());
 
-        slave._terminate(listener);
+        agent._terminate(listener);
         assertNull(pod.get());
     }
 

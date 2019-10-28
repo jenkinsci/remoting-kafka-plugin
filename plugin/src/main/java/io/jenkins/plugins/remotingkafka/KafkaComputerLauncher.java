@@ -75,10 +75,10 @@ public class KafkaComputerLauncher extends ComputerLauncher {
         if (computer instanceof KafkaCloudComputer) {
             launchKubernetesPod((KafkaCloudComputer) computer);
         }
-        launchSlave(computer, listener);
+        launchAgent(computer, listener);
     }
 
-    private void launchSlave(SlaveComputer computer, final TaskListener listener) {
+    private void launchAgent(SlaveComputer computer, final TaskListener listener) {
         launcherExecutorService = Executors.newSingleThreadExecutor(
                 new NamingThreadFactory(Executors.defaultThreadFactory(),
                         "KafkaComputerLauncher.launch for '" + computer.getName() + "' node"));
@@ -153,21 +153,21 @@ public class KafkaComputerLauncher extends ComputerLauncher {
     private void launchKubernetesPod(KafkaCloudComputer computer) {
         KubernetesClient client = null;
         try {
-            KafkaCloudSlave slave = computer.getNode();
-            if (slave == null) {
+            KafkaCloudSlave agent = computer.getNode();
+            if (agent == null) {
                 throw new IllegalStateException("Node has been removed, cannot launch " + computer.getName());
             }
-            KafkaKubernetesCloud cloud = slave.getCloud();
+            KafkaKubernetesCloud cloud = agent.getCloud();
             client = cloud.connect();
 
             // Build Pod
             Pod pod = new PodBuilder()
                     .withNewMetadata()
-                        .withName(slave.getName())
+                        .withName(agent.getName())
                     .endMetadata()
                     .withNewSpec()
                         .addNewContainer()
-                            .withName(slave.getName())
+                            .withName(agent.getName())
                             .withImage(cloud.getContainerImage())
                             .withArgs(getLaunchArguments(computer).split(" "))
                         .endContainer()
@@ -176,7 +176,7 @@ public class KafkaComputerLauncher extends ComputerLauncher {
 
             // Start Pod
             String podId = pod.getMetadata().getName();
-            String namespace = slave.getNamespace();
+            String namespace = agent.getNamespace();
 
             LOGGER.fine(String.format("Creating Pod: %s/%s", namespace, podId));
             client.pods().inNamespace(namespace).create(pod);
@@ -191,7 +191,7 @@ public class KafkaComputerLauncher extends ComputerLauncher {
     }
 
     @Override
-    public void afterDisconnect(SlaveComputer slaveComputer, final TaskListener listener) {
+    public void afterDisconnect(SlaveComputer computer, final TaskListener listener) {
         ExecutorService srv = launcherExecutorService;
         if (srv != null) {
             // If the service is still running, shut it down and interrupt the operations if any
@@ -300,11 +300,11 @@ public class KafkaComputerLauncher extends ComputerLauncher {
         JenkinsLocationConfiguration locationConfiguration = JenkinsLocationConfiguration.get();
         String cloudJenkinsUrl = null;
         if (computer instanceof KafkaCloudComputer) {
-            KafkaCloudSlave slave = (KafkaCloudSlave) computer.getNode();
-            if (slave == null) {
+            KafkaCloudSlave agent = (KafkaCloudSlave) computer.getNode();
+            if (agent == null) {
                 LOGGER.warning("Cannot find node for computer " + computer.getName());
             } else {
-                cloudJenkinsUrl = slave.getCloud().getJenkinsUrl();
+                cloudJenkinsUrl = agent.getCloud().getJenkinsUrl();
             }
         }
 
