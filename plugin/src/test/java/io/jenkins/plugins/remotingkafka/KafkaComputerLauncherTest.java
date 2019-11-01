@@ -30,8 +30,8 @@ public class KafkaComputerLauncherTest {
         g.load();
         KafkaComputerLauncher launcher = new KafkaComputerLauncher("", "",
                 "", "false");
-        DumbSlave slave = new DumbSlave("test", "/tmp/", launcher);
-        j.jenkins.addNode(slave);
+        DumbSlave agent = new DumbSlave("test", "/tmp/", launcher);
+        j.jenkins.addNode(agent);
         Computer c = j.jenkins.getComputer("test");
         assertNotNull(c);
         Thread.sleep(10000); // wait to connect master to kafka.
@@ -45,7 +45,7 @@ public class KafkaComputerLauncherTest {
             t.start();
             Thread.sleep(10000); // wait to connect agent to jenkins master.
             FreeStyleProject p = j.createFreeStyleProject();
-            p.setAssignedNode(slave);
+            p.setAssignedNode(agent);
             j.buildAndAssertSuccess(p);
         } finally {
             t.interrupt();

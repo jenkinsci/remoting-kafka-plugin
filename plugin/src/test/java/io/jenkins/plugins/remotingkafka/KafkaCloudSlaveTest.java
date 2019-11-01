@@ -16,7 +16,7 @@ public class KafkaCloudSlaveTest {
     public JenkinsRule j = new JenkinsRule();
 
     @Test
-    public void testSlaveInitWithCloudOfNullArguments() throws Descriptor.FormException, IOException {
+    public void testAgentInitWithCloudOfNullArguments() throws Descriptor.FormException, IOException {
         final KafkaKubernetesCloud cloud = new KafkaKubernetesCloud("kafka-kubernetes");
         cloud.setDescription(null);
         cloud.setWorkingDir(null);
@@ -28,7 +28,7 @@ public class KafkaCloudSlaveTest {
     }
 
     @Test
-    public void testGetSlaveNameBlankBaseName() {
+    public void testGetAgentNameBlankBaseName() {
         String baseName = null;
         String name = KafkaCloudSlave.getSlaveName(baseName);
         assertTrue(StringUtils.isNotBlank(name));
@@ -38,7 +38,7 @@ public class KafkaCloudSlaveTest {
     }
 
     @Test
-    public void testGetSlaveNameIsRandom() {
+    public void testGetAgentNameIsRandom() {
         final String baseName = "base-name";
         final String name1 = KafkaCloudSlave.getSlaveName(baseName);
         final String name2 = KafkaCloudSlave.getSlaveName(baseName);
@@ -46,7 +46,7 @@ public class KafkaCloudSlaveTest {
     }
 
     @Test
-    public void testGetSlaveNameContainBaseName() {
+    public void testGetAgentNameContainBaseName() {
         final String baseName = "base-name";
         final String name = KafkaCloudSlave.getSlaveName(baseName);
         assertThat(name, containsString(baseName));
