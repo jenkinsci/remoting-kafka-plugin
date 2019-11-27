@@ -29,9 +29,6 @@ jenkins:
 kafka:
   replicas: 1
 
-  envOverrides:
-    KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: "1"
-
   persistence:
     enabled: false
 

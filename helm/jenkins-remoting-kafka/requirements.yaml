@@ -1,9 +1,9 @@
 dependencies:
 - name: jenkins
-  version: 1.4.1
+  version: 1.9.4
   repository: https://kubernetes-charts.storage.googleapis.com/
   condition: jenkins.enabled
 - name: kafka
-  version: 0.16.2
+  version: 0.20.5
   repository: https://kubernetes-charts-incubator.storage.googleapis.com/
   condition: kafka.enabled

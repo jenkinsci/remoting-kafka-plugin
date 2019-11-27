@@ -54,7 +54,7 @@ See the [CHANGELOG](CHANGELOG.md).
 
 ### Using Kubernetes
 
-1. Requirements: A Kubernetes cluster (e.g. minikube), Helm
+1. Requirements: A Kubernetes cluster (e.g. minikube), Helm 2
 
 2. Run the demo:
 
