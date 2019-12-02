@@ -112,7 +112,7 @@ services:
             - "2182:2181"
 
     kafka-no-auth:
-        image: wurstmeister/kafka:latest
+        image: wurstmeister/kafka:2.11-1.1.0
         ports:
             - "9093:9092"
         links:
